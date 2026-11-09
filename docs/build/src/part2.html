@@ -1,0 +1,472 @@
+<!-- ================= 第二部分 ================= -->
+<div class="part">
+  <div class="rings"></div>
+  <div class="inner">
+    <div class="no">02</div>
+    <div class="eyebrow">PART TWO · TECHNICAL ARCHITECTURE</div>
+    <h1>技术栈与架构</h1>
+    <div class="desc">从 Electron 进程边界、React 渲染层、后台服务、Pi SDK，到 SQLite、公开网页、岗位核验与简历材料管线。重点解释“为什么这样分层”和“边界在哪里”，而不是罗列依赖。</div>
+    <div class="list">
+      <div><span>11</span>技术栈总览</div>
+      <div><span>12</span>总体架构与进程模型</div>
+      <div><span>13</span>Electron 桌面层与安全边界</div>
+      <div><span>14</span>核心服务层与数据模型</div>
+      <div><span>15</span>Pi SDK 与 Agent 运行时</div>
+      <div><span>16</span>网络、搜索与公开网页</div>
+      <div><span>17</span>岗位核验与简历材料管线</div>
+      <div><span>18</span>构建、测试与发布</div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= 11 技术栈总览 ================= -->
+<section class="chapter first" id="p2c1" data-num="11" data-title="技术栈总览" data-part="第二部分 · 技术栈与架构" data-pm="[[P2C1]]">
+  <div class="chapter-head">
+    <div class="kicker">STACK · VERSIONS · RATIONALE</div>
+    <h1>技术栈总览<span class="pm">[[P2C1]]</span></h1>
+    <div class="no">11</div>
+  </div>
+
+  <p class="lead">PiCareer 是一个“单机优先”的桌面 Agent 应用：Electron 负责窗口与系统能力，React 负责界面，Node 后台进程负责业务与模型会话，SQLite 负责结构化状态，Pi SDK 负责 Agent 循环与多供应商模型接入。它不是传统的“前端 + 云后端”，而是一个把服务端放进本机进程的桌面架构。</p>
+
+  <h2>11.1 分层与版本</h2>
+  <table class="long">
+    <thead><tr><th style="width:25mm">层</th><th style="width:38mm">主要技术</th><th style="width:20mm">版本</th><th>职责</th></tr></thead>
+    <tbody>
+      <tr><td>桌面运行时</td><td>Electron</td><td class="num">44.7.0</td><td>窗口、协议、IPC、系统浏览器、剪贴板、safeStorage、代理、printToPDF、回收站</td></tr>
+      <tr><td>界面</td><td>React / React DOM</td><td class="num">19.3.0</td><td>单页工作台、聊天、岗位、简历、面试、刷题、背诵与设置</td></tr>
+      <tr><td>前端构建</td><td>Vite / esbuild</td><td class="num">8.3.4 / 0.28.2</td><td>渲染层打包；主进程、preload、后台 worker 的 Node bundle</td></tr>
+      <tr><td>语言与检查</td><td>TypeScript</td><td class="num">7.0.2</td><td>严格类型检查；共享 IPC／业务类型</td></tr>
+      <tr><td>后台运行时</td><td>Node.js（Electron utilityProcess）</td><td class="num">24.x</td><td>业务服务、Pi 会话、SQLite、文件材料、联网与任务编排</td></tr>
+      <tr><td>Agent 运行时</td><td>Pi SDK（本地源码构建）</td><td class="num">0.87.1</td><td>Agent 循环、工具调用、会话、上下文、多供应商模型、OAuth</td></tr>
+      <tr><td>模型目录</td><td>@earendil-works/pi-ai</td><td class="num">0.99.0</td><td>经本地校验的模型目录快照（schema 6）</td></tr>
+      <tr><td>数据</td><td>SQLite（node:sqlite）</td><td class="num">内置</td><td><code>records(kind,id,value,updated)</code>；JSON 文档式存储</td></tr>
+      <tr><td>代码编辑</td><td>Monaco Editor</td><td class="num">0.57.0</td><td>Hot100 的 Python3 编辑、自动保存与草稿</td></tr>
+      <tr><td>文档解析</td><td>pdfjs-dist / mammoth / yauzl</td><td class="num">6.4.299 / 1.13.0 / 3.4.0</td><td>PDF 文本、DOCX 文本、ZIP 条目读取</td></tr>
+      <tr><td>图片与导出</td><td>@napi-rs/canvas / docx</td><td class="num">1.0.11 / 9.10.0</td><td>扫描页缩放、图片输入；Word 生成；PDF 由隔离窗口 printToPDF</td></tr>
+      <tr><td>网页解析</td><td>linkedom / @mozilla/readability</td><td class="num">0.18.13 / 0.6.0</td><td>不执行脚本的 DOM 解析与正文提取</td></tr>
+      <tr><td>网络</td><td>undici / Electron net</td><td class="num">7.30.0</td><td>后台 fetch、系统代理、公开网页隔离会话</td></tr>
+      <tr><td>打包发布</td><td>electron-builder</td><td class="num">26.15.3</td><td>NSIS 安装包、便携 ZIP、asar 与 extraResources</td></tr>
+      <tr><td>验收</td><td>Node test runner / Playwright</td><td class="num">24.x / 1.64.0</td><td>单元与集成测试、真实 Electron 桌面检查、视觉回归</td></tr>
+    </tbody>
+  </table>
+
+  <h2>11.2 为什么是这套组合</h2>
+  <div class="grid2">
+    <div class="card"><h3>Electron：需要真实的桌面能力</h3><p>文件选择、系统浏览器、剪贴板、Windows 加密、系统代理、回收站、隔离打印，这些能力在纯浏览器里没有等价物。Electron 让应用可以用 Web 技术做界面，同时把系统能力收束到主进程。</p></div>
+    <div class="card"><h3>utilityProcess：把重活移出窗口</h3><p>模型会话、SQLite、文件解析和联网如果都放在主进程，会阻塞窗口与 IPC。独立 Node 子进程能隔离崩溃、方便重启，也让“后台退出”成为可显示、可恢复的状态。</p></div>
+    <div class="card"><h3>SQLite + JSON：单用户足够</h3><p>单用户桌面应用不需要远程数据库。以 <code>kind/id</code> 为主键存 JSON，既保留文档模型的灵活性，又能用事务、备份和版本号保护数据。</p></div>
+    <div class="card"><h3>Pi SDK：不重复造 Agent 轮子</h3><p>工具调用、会话、上下文、模型供应商与 OAuth 都是高复杂度基础设施。Pi SDK 提供这些能力，PiCareer 在其上实现产品边界、审批、业务工具与本地数据。</p></div>
+  </div>
+
+  <div class="callout">
+    <span class="t">“本地优先”不等于“离线可用”</span>
+    聊天、简历生成、岗位检索和资讯都需要模型或网络；真正离线可用的只有 Hot100 题意、知识库、手动岗位录入、已有记录浏览等。把“数据在本地”误读为“所有功能都能离线”，是支持沟通中的常见偏差。
+  </div>
+</section>
+
+<!-- ================= 12 总体架构与进程模型 ================= -->
+<section class="chapter" id="p2c2" data-num="12" data-title="总体架构与进程模型" data-part="第二部分 · 技术栈与架构" data-pm="[[P2C2]]">
+  <div class="chapter-head">
+    <div class="kicker">PROCESS MODEL · IPC · DATA FLOW</div>
+    <h1>总体架构与进程模型<span class="pm">[[P2C2]]</span></h1>
+    <div class="no">12</div>
+  </div>
+
+  <p class="lead">PiCareer 的运行时可以画成五层：渲染进程、preload 桥、主进程、后台 utilityProcess、Pi SDK 与本地资源。每一层只暴露必要的接口；窗口不直接联网，后台不直接持有窗口，凭据不进入前端。</p>
+
+  <div class="arch">
+    <div class="layer"><div class="label">渲染进程</div><div class="body"><b>React 19 单页界面</b> · 工作台 / 聊天 / 岗位 / 简历 / 面试 / Hot100 / 背诵 / 设置 · 通过 <code>window.picareer</code> 调用类型化接口，不接触 Node、文件或密钥</div></div>
+    <div class="layer"><div class="label">Preload</div><div class="body"><b>contextBridge</b> · 只暴露 <code>call(method,input)</code>、<code>onEvent</code>、少量窗口操作 · 运行在 <code>sandbox:true</code>、<code>contextIsolation:true</code> 的隔离环境</div></div>
+    <div class="layer"><div class="label">主进程</div><div class="body"><b>Electron Main</b> · 窗口与协议 · IPC 白名单与来源校验 · safeStorage 加密 · 系统代理 · 公开网页隔离会话 · 系统浏览器／剪贴板／回收站 · 隔离窗口 printToPDF</div></div>
+    <div class="layer"><div class="label">后台服务</div><div class="body"><b>utilityProcess（Node 24）</b> · <code>Service</code> 业务编排 · SQLite · Pi 会话 · 搜索与岗位核验 · 简历材料 worker · 任务取消与事件推送</div></div>
+    <div class="layer"><div class="label">Agent 与资源</div><div class="body"><b>Pi SDK</b>（ModelRuntime / SessionManager / 工具）· 模型供应商或本地兼容 API · 随包 ripgrep · content 知识／题库 · 用户数据目录</div></div>
+  </div>
+
+  <h2>12.1 各进程的职责</h2>
+  <table>
+    <thead><tr><th style="width:29mm">进程／层</th><th>负责</th><th style="width:44mm">明确不负责</th></tr></thead>
+    <tbody>
+      <tr><td>渲染进程</td><td>展示状态、收集输入、合并流式事件、提供可访问的交互</td><td>不读文件、不联网、不持有密钥、不执行命令</td></tr>
+      <tr><td>preload</td><td>把受限 IPC 包装成前端可调用接口；转发事件</td><td>不实现业务逻辑；不暴露任意 <code>ipcRenderer</code></td></tr>
+      <tr><td>主进程</td><td>窗口、协议、权限、系统能力、加密、代理、隔离网络、文件回收</td><td>不直接跑模型会话；不写业务数据库</td></tr>
+      <tr><td>后台服务</td><td>业务状态、任务、SQLite、Pi 会话、搜索、解析、导出数据准备</td><td>不直接操作窗口；不绕过主进程做系统调用</td></tr>
+      <tr><td>Pi SDK</td><td>模型调用、工具循环、会话持久化、上下文估算</td><td>不决定产品权限；不直接面向用户</td></tr>
+    </tbody>
+  </table>
+
+  <h2>12.2 一次聊天请求的数据流</h2>
+  <div class="flow">
+    <div class="node"><b>① 输入</b>用户消息 + 可选目录</div><div class="arrow">→</div>
+    <div class="node"><b>② IPC</b>preload → main 校验来源</div><div class="arrow">→</div>
+    <div class="node"><b>③ 转发</b>main → utilityProcess</div><div class="arrow">→</div>
+    <div class="node"><b>④ 服务</b><code>Service.chat</code> 互斥、建会话</div><div class="arrow">→</div>
+    <div class="node"><b>⑤ Agent</b>Pi 模型 + 工具 + 审批</div><div class="arrow">→</div>
+    <div class="node"><b>⑥ 事件</b>流式增量 → 前端合并</div>
+  </div>
+  <p>消息在开始时就写入本地；文字流最多每 150ms 落盘并推送；工具结束和轮次结束立即保存。前端按 <code>revision</code> 合并全量快照，页面卸载不会丢失运行状态。停止只中止指定聊天，不影响其他任务。</p>
+
+  <h2>12.3 进程间协议</h2>
+  <table class="compact">
+    <thead><tr><th style="width:36mm">通道</th><th>形态</th><th>用途</th></tr></thead>
+    <tbody>
+      <tr><td>渲染 ↔ 主</td><td><code>ipcRenderer.invoke('call', method, input)</code></td><td>统一业务调用；主进程校验发送者、URL、方法白名单与输入大小</td></tr>
+      <tr><td>主 → 渲染</td><td><code>event</code> 推送</td><td>聊天增量、授权状态、任务进度、通知、后台退出</td></tr>
+      <tr><td>主 ↔ 后台</td><td><code>postMessage</code> / <code>parentPort</code></td><td><code>call</code>、<code>result</code>、<code>event</code>、<code>crypt</code>、<code>webRead</code>、<code>resolveProxy</code>、<code>trashArtifact</code></td></tr>
+      <tr><td>后台 ↔ Pi</td><td>SDK 函数与事件订阅</td><td><code>createAgentSession</code>、<code>session.prompt</code>、<code>session.subscribe</code>、<code>getContextUsage</code></td></tr>
+    </tbody>
+  </table>
+
+  <h2>12.4 并发、取消与恢复</h2>
+  <ul>
+    <li><b>全局聊天互斥：</b><code>exclusive("chat")</code> 保证同一时间只有一轮聊天在写状态；不同面试／测验按记录 ID 互斥。</li>
+    <li><b>任务取消：</b>每个聊天、岗位检索、简历生成、面试都有 <code>AbortController</code>；取消会传递到模型请求、工具与网页读取。</li>
+    <li><b>幂等令牌：</b>学习计划的 <code>batchToken</code>、测验 ID、删除对话的预览 token、刷题记录的创建 ID，避免重复点击产生重复结果。</li>
+    <li><b>异常恢复：</b>启动时把仍为 <code>running</code> 的聊天标记为 <code>interrupted</code>，不重放命令；简历任务标记失败并保留旧稿；未完成的删除标记会继续清理。</li>
+  </ul>
+</section>
+
+<!-- ================= 13 Electron 桌面层 ================= -->
+<section class="chapter" id="p2c3" data-num="13" data-title="Electron 桌面层与安全边界" data-part="第二部分 · 技术栈与架构" data-pm="[[P2C3]]">
+  <div class="chapter-head">
+    <div class="kicker">ELECTRON · CSP · SAFESTORAGE · PROXY</div>
+    <h1>Electron 桌面层与安全边界<span class="pm">[[P2C3]]</span></h1>
+    <div class="no">13</div>
+  </div>
+
+  <p class="lead">主进程是 PiCareer 的“系统能力代理”。它不信任渲染层，也不把 Node 能力直接交给页面；所有窗口、协议、网络、加密和系统调用都在这里收口。</p>
+
+  <h2>13.1 窗口与本地协议</h2>
+  <p>应用注册了两个特权协议：<code>picareer://</code> 提供界面资源，<code>practice://</code> 提供隔离的算法练习页面。协议处理器会解析路径、禁止 <code>..</code> 逃逸，并为每个响应设置内容类型与 CSP。窗口使用隐藏标题栏与 Window Controls Overlay，最小尺寸 1024×700。</p>
+  <table class="compact">
+    <thead><tr><th style="width:38mm">设置</th><th>值／行为</th></tr></thead>
+    <tbody>
+      <tr><td>contextIsolation / sandbox</td><td><code>true</code> / <code>true</code>；<code>nodeIntegration:false</code></td></tr>
+      <tr><td>窗口打开</td><td><code>setWindowOpenHandler</code> 一律拒绝；<code>will-navigate</code> 只允许 <code>picareer://app/</code></td></tr>
+      <tr><td>权限请求</td><td>默认全部拒绝；不授予摄像头、麦克风、地理位置等权限</td></tr>
+      <tr><td>WebView</td><td><code>will-attach-webview</code> 直接阻止</td></tr>
+      <tr><td>界面网络</td><td><code>onBeforeRequest</code> 取消所有 <code>http/https/ws/wss</code> 请求；界面完全离线</td></tr>
+    </tbody>
+  </table>
+
+  <h2>13.2 CSP 与资源边界</h2>
+  <p>界面 CSP 明确限制脚本、worker、样式、图片、字体、连接与 frame 来源：</p>
+  <div class="quote"><code>default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'; frame-src 'self' about: practice://runner; object-src 'none'; base-uri 'none'</code></div>
+  <p>练习页使用更严格的 CSP，只允许自身脚本与 worker。这样即使某个页面被注入内容，也不能直接发起远端请求或加载任意脚本。</p>
+
+  <h2>13.3 IPC 白名单</h2>
+  <p>主进程只接受来自主窗口主 frame、且 URL 以 <code>picareer://app/</code> 开头的调用；方法必须命中固定集合，输入序列化后不得超过 1 MB。渲染层没有“读取密钥”“任意路径删除”“任意命令执行”的通用接口；文件回收、导出、选择目录、打开外部链接等都由专门分支处理。</p>
+
+  <h2>13.4 Windows 加密与凭据</h2>
+  <p><code>Vault</code> 实现 Pi 的 <code>CredentialStore</code>：写入时先检查 <code>safeStorage.isAsyncEncryptionAvailable()</code>，加密后以 Base64 存入 SQLite；读取时解密。凭据密文与索引在同一个事务中提交；取消或失败时保留原凭据。主进程只向后台提供 <code>crypt</code> 操作，不向前端提供任何读取方法。</p>
+
+  <h2>13.5 系统代理与隔离会话</h2>
+  <p>联网请求遵循 Windows 系统代理。主进程用 <code>session.defaultSession.resolveProxy(origin)</code> 解析路由，后台用 undici 的 <code>ProxyAgent</code> 连接；代理失败时明确报错，不会静默改为直连。公开网页使用独立的非持久 Electron session，按代理路由复用，不携带 UI Cookie 或模型凭据。</p>
+  <table class="compact">
+    <thead><tr><th style="width:40mm">保护</th><th>实现</th></tr></thead>
+    <tbody>
+      <tr><td>协议限制</td><td>仅 <code>http/https</code>，禁止用户名密码、非 80/443 端口、localhost 与内网域名</td></tr>
+      <tr><td>DNS／IP 校验</td><td>解析结果必须是公网地址；每一跳重定向都重新校验</td></tr>
+      <tr><td>重定向</td><td>最多 5 次；缺 Location、跳内网、跳验证页均拒绝</td></tr>
+      <tr><td>大小与超时</td><td>20 秒超时；正文最多 2 MiB；并发最多 8 个读取任务</td></tr>
+      <tr><td>内容类型</td><td>只接受 HTML、纯文本；招聘接口额外允许 JSON</td></tr>
+    </tbody>
+  </table>
+
+  <h2>13.6 隔离打印与文件回收</h2>
+  <p>PDF 导出不在主窗口执行，而是创建一个隐藏 BrowserWindow，使用独立 <code>resume-export</code> session，只允许 <code>data:</code> 请求；加载 HTML 后等待字体与图片解码，再 <code>printToPDF</code>。文件回收通过主进程专用通道调用 <code>shell.trashItem</code>，渲染层没有任意路径删除接口。</p>
+
+  <div class="callout warn">
+    <span class="t">安全边界的真实含义</span>
+    CSP 与 IPC 白名单保护的是“界面不被远端内容控制”；它们不保护“用户批准的命令本身是否安全”。PowerShell 仍以当前用户权限执行，文件审批也不是容器隔离。支持人员应把这两类风险分开解释。
+  </div>
+
+  <h2>13.7 渲染层</h2>
+  <p>界面是 React 19 单页应用，由 Vite 构建；页面状态由应用状态驱动，不使用客户端路由。Markdown 由 react-markdown 渲染且不执行 HTML；Hot100 使用 Monaco 自动保存；125%／150% 缩放与 1024×700 最小窗口纳入视觉验收。</p>
+</section>
+
+<!-- ================= 15 核心服务层与数据模型 ================= -->
+<section class="chapter" id="p2c5" data-num="14" data-title="核心服务层与数据模型" data-part="第二部分 · 技术栈与架构" data-pm="[[P2C5]]">
+  <div class="chapter-head">
+    <div class="kicker">SERVICE · SQLITE · RECORDS</div>
+    <h1>核心服务层与数据模型<span class="pm">[[P2C5]]</span></h1>
+    <div class="no">14</div>
+  </div>
+
+  <p class="lead">后台的 <code>Service</code> 是业务的唯一入口：它校验参数、控制并发、调用子模块、写 SQLite、发事件。数据库不是“每个功能一张表”，而是一张 <code>records</code> 表，用 <code>kind</code> 区分记录类型，用 JSON 保存文档。</p>
+
+  <h2>14.1 请求入口与约束</h2>
+  <p><code>Service.call(method, args)</code> 使用固定 <code>switch</code> 分发，每个分支自行校验字符串长度、ID 格式、枚举值与必填字段。未知方法直接拒绝；常见错误包括“参数无效”“记录不存在”“请填写 JD”“该任务正在处理，请稍后”。</p>
+  <div class="grid2">
+    <div class="card"><h3>互斥</h3><p><code>exclusive(id, fn)</code> 用 <code>Set</code> 记录正在处理的任务；同一聊天、同一计划测验、同一面试不会并发写坏状态。</p></div>
+    <div class="card"><h3>幂等</h3><p>批次 token、测验 ID、删除预览 token、刷题创建 ID 都用于识别重复请求；重复提交返回原结果而不是再执行一次。</p></div>
+  </div>
+
+  <h2>14.2 SQLite 结构</h2>
+  <div class="quote"><code>CREATE TABLE records (kind TEXT NOT NULL, id TEXT NOT NULL, value TEXT NOT NULL, updated TEXT NOT NULL, PRIMARY KEY(kind,id)); PRAGMA user_version = 1;</code></div>
+  <table class="compact">
+    <thead><tr><th style="width:34mm">kind</th><th>保存内容</th></tr></thead>
+    <tbody>
+      <tr><td><code>config</code></td><td>供应商、模型、服务地址、接口协议</td></tr>
+      <tr><td><code>secrets</code> / <code>secret-index</code></td><td>safeStorage 加密后的凭据与不含秘密的索引</td></tr>
+      <tr><td><code>chat</code></td><td>标题、消息、entries、run、turns、cwd、sessionFile、revision</td></tr>
+      <tr><td><code>favorite</code> / <code>job</code></td><td>收藏岗位、手动岗位字段、来源与时间</td></tr>
+      <tr><td><code>interview</code></td><td>企业、岗位、JD、来源、8 题、追问、报告</td></tr>
+      <tr><td><code>plan</code></td><td>JD、原因、完整知识条目快照、完成数、批次 token、测验</td></tr>
+      <tr><td><code>coding-attempt</code> / <code>draft</code> / <code>result</code></td><td>逐次刷题记录、代码草稿、旧版本地判题结果</td></tr>
+      <tr><td><code>resume</code></td><td>简历草稿、材料引用、事实、问题、版本、布局</td></tr>
+      <tr><td><code>artifact</code> / <code>deleted-chat</code></td><td>对话产物归属、清理状态、防迟到恢复的删除标记</td></tr>
+      <tr><td><code>dashboard</code></td><td>资讯缓存、日期、知识点选择与更新状态</td></tr>
+      <tr><td><code>auth-diagnostic</code></td><td>最近 50 条授权诊断分类（不含令牌与账户标识）</td></tr>
+    </tbody>
+  </table>
+
+  <h2>14.3 备份、事务与版本保护</h2>
+  <ul>
+    <li>启动时如果数据库存在，先复制为 <code>picareer.sqlite.backup</code>，再打开数据库。</li>
+    <li>使用 <code>PRAGMA journal_mode=DELETE</code> 与 <code>foreign_keys=ON</code>；需要原子性的写入显式 <code>BEGIN IMMEDIATE</code> / <code>COMMIT</code> / <code>ROLLBACK</code>。</li>
+    <li>读取 <code>PRAGMA user_version</code>；高于 1 时关闭数据库并抛出“此数据由更高版本创建”，避免旧代码破坏新结构。</li>
+    <li>记录按 <code>updated</code> 倒序返回；聊天按更新时间排序，计划与测验按创建时间保持稳定。</li>
+  </ul>
+
+  <h2>14.4 文件型状态</h2>
+  <table class="compact">
+    <thead><tr><th style="width:48mm">位置</th><th>写入方</th><th>用途</th></tr></thead>
+    <tbody>
+      <tr><td><code>sessions/*.jsonl</code></td><td>Pi SessionManager</td><td>每轮对话的完整 SDK 会话，支持继续与上下文恢复</td></tr>
+      <tr><td><code>resume-materials/&lt;id&gt;/</code></td><td>简历材料 worker</td><td>提取后的文本片段、图片副本；原文件不动</td></tr>
+      <tr><td><code>agent/skills/</code></td><td>用户</td><td>应用级 Skills，只读加载</td></tr>
+      <tr><td><code>agent/bin/rg.exe</code></td><td>启动时复制</td><td>随包 ripgrep，供 find/grep 使用，不依赖系统 PATH</td></tr>
+      <tr><td><code>model-cache.json</code></td><td>ModelRuntime</td><td>模型目录缓存；可重建</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <span class="t">为什么“只恢复数据库”不够</span>
+    数据库保存聊天摘要与简历草稿，但 Pi 会话在 <code>sessions/</code>，材料副本在 <code>resume-materials/</code>。只恢复数据库会出现“记录还在、上下文或材料缺失”的半恢复状态。完整备份应包含整个 userData 目录。
+  </div>
+</section>
+
+<!-- ================= 16 Pi SDK 与 Agent 运行时 ================= -->
+<section class="chapter" id="p2c6" data-num="15" data-title="Pi SDK 与 Agent 运行时" data-part="第二部分 · 技术栈与架构" data-pm="[[P2C6]]">
+  <div class="chapter-head">
+    <div class="kicker">PI SDK · AGENT LOOP · TOOLS</div>
+    <h1>Pi SDK 与 Agent 运行时<span class="pm">[[P2C6]]</span></h1>
+    <div class="no">15</div>
+  </div>
+
+  <p class="lead">PiCareer 不自建 Agent 循环，而是使用本地源码构建的 Pi SDK。Pi 提供模型运行时、会话、工具调用与资源加载；PiCareer 在其上注册产品工具、审批钩子、路径限制和业务提示词。</p>
+
+  <h2>15.1 三个核心对象</h2>
+  <table>
+    <thead><tr><th style="width:38mm">对象</th><th>作用</th></tr></thead>
+    <tbody>
+      <tr><td><code>ModelRuntime</code></td><td>加载模型目录与凭据，注册自定义 provider，创建/刷新/logout 供应商；<code>allowModelNetwork:false</code> 时使用固定快照</td></tr>
+      <tr><td><code>SessionManager</code></td><td>创建、打开、持久化 Pi 会话；会话文件位于 <code>sessions/</code>，支持继续旧对话</td></tr>
+      <tr><td><code>SettingsManager</code></td><td>内存设置：SSE 传输、重试 1 次、自动压缩；避免自动加载第三方可执行扩展</td></tr>
+    </tbody>
+  </table>
+
+  <h2>15.2 会话创建</h2>
+  <p><code>Pi.session()</code> 先读取当前供应商与模型，解析工作目录（未选择时为独立 <code>workspace/</code>），再用 <code>DefaultResourceLoader</code> 关闭扩展、Skills、提示模板、主题与上下文文件的自动加载，只按需注入：</p>
+  <ul>
+    <li>项目说明：<code>AGENTS.override.md</code> → <code>AGENTS.md</code> → <code>CLAUDE.md</code>，限制 60,000 字符。</li>
+    <li>Skills：应用级目录、项目 <code>.pi/skills</code>、<code>.agents/skills</code>；只允许工作目录或应用 Skills 目录内的真实路径。</li>
+    <li>工具：选择目录时注册 read、ls、find、grep、write、edit、powershell；通用模式额外注册日期、天气、搜索、网页读取。</li>
+  </ul>
+
+  <h2>15.3 工具审批与路径保护</h2>
+  <div class="flow">
+    <div class="node"><b>工具调用</b>Pi 发出 <code>tool_call</code></div><div class="arrow">→</div>
+    <div class="node"><b>取消检查</b>signal 已中止则拒绝</div><div class="arrow">→</div>
+    <div class="node"><b>路径解析</b>realpath + 相对路径检查</div><div class="arrow">→</div>
+    <div class="node"><b>审批</b>write/edit/powershell 询问用户</div><div class="arrow">→</div>
+    <div class="node"><b>执行</b>允许、拒绝或本会话授权</div>
+  </div>
+  <p>路径检查会找到最近的已存在祖先目录，解析真实路径后再判断是否位于工作目录内；应用级 Skills 目录只对 <code>read</code> 开放。写入前展示原文件与拟写入内容；PowerShell 可以“仅允许此次”或“本次打开 App 期间允许该目录”。</p>
+
+  <h2>15.4 流式事件与上下文</h2>
+  <p><code>session.subscribe</code> 接收 <code>message_update</code>、<code>tool_execution_start</code>、<code>tool_execution_end</code> 等事件。PiCareer 只消费文本增量与工具状态，不输出内部推理正文；每轮结束调用 <code>getContextUsage()</code> 保存 token 估算，自定义模型不展示不可确认的百分比。</p>
+
+  <h2>15.5 SDK 兼容补丁</h2>
+  <p>PiCareer 不修改本地 <code>pi-main</code> 上游源码。构建时 <code>prepare-sdk</code> 复制依赖，并对 <code>@earendil-works/pi-ai</code> 应用受 SHA-256 与唯一替换位置校验的兼容补丁；补丁记录在 <code>resources/pi/node_modules/@earendil-works/pi-ai/dist/picareer-compat.json</code>。源文件改变或补丁无法精确匹配时停止构建。</p>
+  <table class="compact">
+    <thead><tr><th style="width:44mm">清单</th><th>值</th></tr></thead>
+    <tbody>
+      <tr><td>SDK 源码版本</td><td>0.87.1</td></tr>
+      <tr><td>源码摘要</td><td><code>b4f2d31cc38be3a3fa181235d85d1395eacb17ef79a4463115ad6d4217d67abc</code></td></tr>
+      <tr><td>模型目录</td><td><code>@earendil-works/pi-ai@0.99.0</code>，schema 6，经本地校验</td></tr>
+      <tr><td>上游改动</td><td>不修改 <code>pi-main</code>；只对随包副本应用兼容补丁</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout warn">
+    <span class="t">Agent 不是“无限能力”</span>
+    Pi 的权限模型默认继承启动用户；PiCareer 通过产品层审批与路径检查缩小暴露面，但不构成容器。工具能做什么，最终取决于当前用户权限、所选目录和用户是否批准。
+  </div>
+</section>
+
+<!-- ================= 17 网络、搜索与公开网页 ================= -->
+<section class="chapter" id="p2c7" data-num="16" data-title="网络、搜索与公开网页" data-part="第二部分 · 技术栈与架构" data-pm="[[P2C7]]">
+  <div class="chapter-head">
+    <div class="kicker">NETWORK · SEARCH · SSRF</div>
+    <h1>网络、搜索与公开网页<span class="pm">[[P2C7]]</span></h1>
+    <div class="no">16</div>
+  </div>
+
+  <p class="lead">PiCareer 有四条网络路径：界面（完全禁止）、后台服务 fetch（固定工具域名）、主进程 PublicWeb（公开网页）、Codex 授权与模型（受控供应商域名）。它们共享系统代理，但不共享 Cookie、会话或凭据。</p>
+
+  <h2>16.1 四条路径</h2>
+  <table>
+    <thead><tr><th style="width:36mm">路径</th><th>允许目标</th><th>安全措施</th></tr></thead>
+    <tbody>
+      <tr><td>界面</td><td>无</td><td>取消所有 http/https/ws/wss；CSP <code>connect-src 'self'</code></td></tr>
+      <tr><td>后台 service fetch</td><td>Tavily、Open-Meteo 等固定工具域名</td><td>origin 白名单；30 秒超时；系统代理；失败不直连</td></tr>
+      <tr><td>PublicWeb</td><td>公开网页与已核验招聘接口</td><td>独立 session；DNS/IP 公网校验；5 次重定向；20 秒；2 MiB；最多 8 并发</td></tr>
+      <tr><td>Codex 授权／模型</td><td><code>auth.openai.com</code>、<code>chatgpt.com</code></td><td>origin 白名单；SSE；60 秒交换超时；不把响应体写入诊断</td></tr>
+    </tbody>
+  </table>
+
+  <h2>16.2 系统代理</h2>
+  <p>主进程用 <code>resolveProxy</code> 读取 Windows 代理设置，<code>proxyRoute</code> 只接受第一个 <code>DIRECT</code>、<code>PROXY</code> 或 <code>HTTPS</code> 路由，拒绝带用户名密码或无法解析的地址。代理故障时明确提示“未绕过代理”，不会静默直连；这是 0.1.3 授权修复的核心。</p>
+
+  <h2>16.3 搜索回退</h2>
+  <div class="flow">
+    <div class="node"><b>Tavily</b>可选，优先</div><div class="arrow">→</div>
+    <div class="node"><b>Bing HTML</b>无 Key 可用</div><div class="arrow">→</div>
+    <div class="node"><b>DuckDuckGo HTML</b>备用</div><div class="arrow">→</div>
+    <div class="node"><b>相关性检查</b>无查询词重叠则拒绝</div><div class="arrow">→</div>
+    <div class="node"><b>正文读取</b>Readability 提取</div>
+  </div>
+  <p>搜索页由 linkedom 解析，不执行脚本；Bing 的 <code>/ck/a</code> 跳转与 DuckDuckGo 的 <code>uddg</code> 参数会被还原为真实地址。结果保留实际引擎、来源与备用原因；如果所有引擎都失败，错误中会逐条列出原因。</p>
+
+  <h2>16.4 公开网页的限制</h2>
+  <table class="compact">
+    <thead><tr><th style="width:34mm">限制</th><th>值／行为</th></tr></thead>
+    <tbody>
+      <tr><td>协议</td><td>仅 http/https；拒绝用户名密码、非标准端口、localhost、内网域名</td></tr>
+      <tr><td>DNS</td><td>解析结果必须是公网 IPv4/IPv6；重定向每一跳重新解析</td></tr>
+      <tr><td>验证页</td><td>路径含 verify/captcha/challenge 或标题为安全验证时，返回 VERIFICATION</td></tr>
+      <tr><td>登录页</td><td>路径含 login/signin 时，返回 LOGIN</td></tr>
+      <tr><td>大小／超时</td><td>2 MiB / 20 秒；超过则 SIZE／TIMEOUT</td></tr>
+      <tr><td>内容类型</td><td>HTML、纯文本；招聘接口额外允许 JSON</td></tr>
+    </tbody>
+  </table>
+
+  <h2>16.5 错误分类</h2>
+  <p>网络错误不是一句“失败了”。常见分类包括 <code>ADDRESS</code>、<code>VERIFICATION</code>、<code>LOGIN</code>、<code>HTTP</code>、<code>RATE_LIMIT</code>、<code>TIMEOUT</code>、<code>SIZE</code>、<code>CONTENT_TYPE</code>、<code>PROXY</code>、<code>NETWORK</code>、<code>PARSE</code>。支持人员应保留分类与 HTTP 状态，不要只记录“打不开”。</p>
+</section>
+
+<!-- ================= 18 岗位核验与简历材料管线 ================= -->
+<section class="chapter" id="p2c8" data-num="17" data-title="岗位核验与简历材料管线" data-part="第二部分 · 技术栈与架构" data-pm="[[P2C8]]">
+  <div class="chapter-head">
+    <div class="kicker">EVIDENCE PIPELINES · JOBS · RESUME</div>
+    <h1>岗位核验与简历材料管线<span class="pm">[[P2C8]]</span></h1>
+    <div class="no">17</div>
+  </div>
+
+  <p class="lead">岗位与简历是 PiCareer 里两个“最容易被模型幻觉污染”的场景。它们的共同解法不是换更强的模型，而是把“生成”夹在“证据提取”和“引用校验”之间：模型只能基于已读取的片段写作，结果必须能回到原文。</p>
+
+  <h2>17.1 岗位检索管线</h2>
+  <div class="flow">
+    <div class="node"><b>查询生成</b>最多 6 组，保留企业/城市条件</div><div class="arrow">→</div>
+    <div class="node"><b>候选</b>最多 24 个，按官方/职位页/方向打分</div><div class="arrow">→</div>
+    <div class="node"><b>读取</b>最多 12 篇正文，并发 3，90 秒</div><div class="arrow">→</div>
+    <div class="node"><b>解析</b>JSON-LD / 明确标签 / 模型提取</div><div class="arrow">→</div>
+    <div class="node"><b>核验</b>逐字引用 + 连续区块 + 条件匹配</div><div class="arrow">→</div>
+    <div class="node"><b>去重</b>URL / 企业+职位+地点+正文</div>
+  </div>
+  <p>JSON-LD 中的每个 <code>JobPosting</code> 独立成块，不把多个岗位拼成一个；菜单城市、合作伙伴、客户不能作为企业或城市证据；摘要不能进入严格匹配。官网入口来自随包目录、公开页面链接与已核验的北森/Zhiye 租户，单独展示，不凑岗位数量。</p>
+
+  <h2>17.2 简历材料管线</h2>
+  <div class="flow">
+    <div class="node"><b>选择</b>文件/目录/ZIP，用途分类</div><div class="arrow">→</div>
+    <div class="node"><b>扫描</b>排除依赖/凭据/链接/超限</div><div class="arrow">→</div>
+    <div class="node"><b>解析</b>PDF.js / Mammoth / 源码分片</div><div class="arrow">→</div>
+    <div class="node"><b>分片</b>按位置标注，默认勾选可读文本</div><div class="arrow">→</div>
+    <div class="node"><b>分批</b>9 万字符 / 6 图 / 3 分钟</div><div class="arrow">→</div>
+    <div class="node"><b>核验</b>事实 ID + 逐字引用 + 数字检查</div>
+  </div>
+  <p>材料 worker 在独立线程中运行，最多 8 份材料、10,000 份源码、512 KB 单文件、60 页 PDF（其中 6 个扫描页）。超过单批范围自动分批；每批模型调用最多 3 分钟，整次任务按批次数扩展时限。所有批次分析后合并相同事实，较大的事实集合逐层选择已有 ID，不通过汇总重写事实。</p>
+
+  <h2>17.3 事实约束</h2>
+  <table class="compact">
+    <thead><tr><th style="width:36mm">检查</th><th>行为</th></tr></thead>
+    <tbody>
+      <tr><td>引用</td><td>必须逐字存在于本轮勾选片段；模板中的他人事实排除</td></tr>
+      <tr><td>数字</td><td>标题、条目里的数字必须有引用依据；全角、小数尾零与维数表达可等价，但不计算新指标</td></tr>
+      <tr><td>成果状态</td><td>“已录用/已发表/已授权/第一作者/获奖/提升/降低”必须能在依据中找到</td></tr>
+      <tr><td>结构</td><td>每项 2～4 条；条目为非空单段短句；事实 ID 必须存在</td></tr>
+      <tr><td>修复</td><td>结构或引用错误允许一次有界修复；修复后重新验证，不自动重试网络</td></tr>
+    </tbody>
+  </table>
+
+  <h2>17.4 导出</h2>
+  <p>Word 由 <code>docx</code> 生成，PDF 由隔离 Electron 窗口 <code>printToPDF</code> 生成，不依赖用户安装 Python 或 Office。两种格式使用相同内容与栏目顺序；PDF 超出所选页数时阻止导出并提示精简或改页数。0.1.15 的完整简历导出入口尚未开放，以上能力保留在设计与历史实现中。</p>
+
+  <div class="callout">
+    <span class="t">管线的代价</span>
+    证据核验会降低“看起来很美”的生成自由度，也会增加失败率和等待时间。分批、引用定位、数字检查都可能让一次生成变慢或被拒绝。这是有意的取舍：在简历和岗位场景，宁可让用户补充事实，也不把不确定内容写成确定成果。
+  </div>
+</section>
+
+<!-- ================= 19 构建、测试与发布 ================= -->
+<section class="chapter" id="p2c9" data-num="18" data-title="构建、测试与发布" data-part="第二部分 · 技术栈与架构" data-pm="[[P2C9]]">
+  <div class="chapter-head">
+    <div class="kicker">BUILD · TEST · RELEASE</div>
+    <h1>构建、测试与发布<span class="pm">[[P2C9]]</span></h1>
+    <div class="no">18</div>
+  </div>
+
+  <p class="lead">PiCareer 的发布不是“npm run build 然后压缩”。它包含 SDK 准备与摘要校验、内容校验、三套 bundle、Electron 打包、真实桌面验收、覆盖安装、SHA-256 清单与版本归档。每一步都留下可复核的记录。</p>
+
+  <h2>18.1 构建链路</h2>
+  <div class="flow">
+    <div class="node"><b>prepare-sdk</b>复制依赖 + 补丁</div><div class="arrow">→</div>
+    <div class="node"><b>verify-official</b>100 题身份/内容/图片</div><div class="arrow">→</div>
+    <div class="node"><b>esbuild</b>worker / main / preload</div><div class="arrow">→</div>
+    <div class="node"><b>Vite</b>渲染层 + Monaco</div><div class="arrow">→</div>
+    <div class="node"><b>electron-builder</b>NSIS + ZIP</div><div class="arrow">→</div>
+    <div class="node"><b>验收</b>桌面/安装/证据</div>
+  </div>
+  <table class="compact">
+    <thead><tr><th style="width:38mm">产物</th><th>内容</th></tr></thead>
+    <tbody>
+      <tr><td><code>dist/main.cjs</code> / <code>preload.cjs</code></td><td>Electron 主进程与 preload，CJS，Node 24 目标</td></tr>
+      <tr><td><code>dist/ui/</code></td><td>Vite 构建的 React 界面与 Monaco；本地协议加载</td></tr>
+      <tr><td><code>resources/pi/worker.mjs</code></td><td>后台服务 bundle；Pi SDK 作为 external 从随包副本加载</td></tr>
+      <tr><td><code>resources/pi/resume-material-worker.mjs</code></td><td>材料解析 worker；PDF/DOCX/ZIP/Canvas 作为 external</td></tr>
+      <tr><td><code>resources/pi-source.json</code></td><td>SDK 版本、源码摘要与逐文件 SHA-256</td></tr>
+      <tr><td><code>release/*.exe</code> / <code>*.zip</code></td><td>NSIS 安装包、便携包；未签名</td></tr>
+    </tbody>
+  </table>
+
+  <h2>18.2 测试矩阵</h2>
+  <table>
+    <thead><tr><th style="width:38mm">层级</th><th>内容</th><th style="width:34mm">0.1.15 记录</th></tr></thead>
+    <tbody>
+      <tr><td>类型检查</td><td><code>tsc --noEmit</code></td><td>通过</td></tr>
+      <tr><td>单元／核心回归</td><td>聊天、授权、岗位、简历、学习、归档、产物清理等</td><td>149 项通过</td></tr>
+      <tr><td>内容校验</td><td>100 题官方身份、模板、显示内容、图片摘要；210 条知识字段</td><td>构建时阻塞</td></tr>
+      <tr><td>真实 Electron</td><td>125%／150%、聊天、岗位、简历、刷题、设置、授权</td><td>开发版与打包版验收</td></tr>
+      <tr><td>集成</td><td>真实 Pi SDK + 本地模拟模型；文件审批、PowerShell、停止、恢复</td><td>36 次协议请求等</td></tr>
+      <tr><td>安装</td><td>NSIS 覆盖安装、快捷方式、数据库 SHA-256</td><td>安装前后一致</td></tr>
+    </tbody>
+  </table>
+
+  <h2>18.3 发布规则</h2>
+  <ul>
+    <li>每个已验收版本使用附注标签 <code>v&lt;version&gt;</code>，标签说明记录验证结果与三个交付包的 SHA-256。</li>
+    <li>已有标签不可强制覆盖；普通候选包即使文件齐全，也不会自动被视为已验收。</li>
+    <li><code>archive-releases.mjs</code> 保留最近两个已登记完整版本与当前 <code>win-unpacked</code>；旧包移动到 <code>archive/releases</code>，不删除字节。</li>
+    <li>Git 不纳入依赖、构建产物、发布包、数据库、会话、个人材料与运行截图；运行截图可能包含真实用户状态。</li>
+  </ul>
+
+  <div class="callout warn">
+    <span class="t">未签名与未覆盖的验证</span>
+    发行包尚未购买代码签名证书；Windows SmartScreen 可能提示未知发布者。项目记录中也明确列出未完成项：独立干净虚拟机、Windows 11、多显示器、真实付费模型兼容性、真实 Tavily 账户等。支持人员不应把这些说成“已全面验证”。
+  </div>
+
+  <h2>18.4 架构评价</h2>
+  <p>在“单用户桌面 Agent”的约束下，这套架构是自洽的：界面离线、后台独立、凭据不进前端、生成可回到证据、幂等与备份覆盖主要失败路径。代价是组件多、验证重、外部网站脆弱、模型依赖强。支持项目应坚持版本化知识、证据化回答与分层排障。</p>
+</section>

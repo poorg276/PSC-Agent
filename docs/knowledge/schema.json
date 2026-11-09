@@ -1,0 +1,84 @@
+{
+  "type": "object",
+  "required": [
+    "id",
+    "doc_id",
+    "kind",
+    "chapter_no",
+    "title",
+    "version",
+    "source_docs",
+    "evidence_level",
+    "page_start",
+    "page_end",
+    "content",
+    "content_sha256"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Stable chunk id"
+    },
+    "doc_id": {
+      "type": "string"
+    },
+    "kind": {
+      "enum": [
+        "chapter",
+        "section"
+      ]
+    },
+    "chapter_no": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "section_title": {
+      "type": "string"
+    },
+    "part": {
+      "type": "string"
+    },
+    "version": {
+      "type": "string"
+    },
+    "source_docs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "evidence_level": {
+      "enum": [
+        "A",
+        "B",
+        "C"
+      ]
+    },
+    "page_start": {
+      "type": "integer"
+    },
+    "page_end": {
+      "type": "integer"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "case_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "content": {
+      "type": "string"
+    },
+    "content_sha256": {
+      "type": "string"
+    }
+  }
+}

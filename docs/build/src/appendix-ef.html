@@ -1,0 +1,157 @@
+<!-- ================= 附录 E 真实模型验收 ================= -->
+<section class="chapter" id="p4c5" data-num="E" data-title="真实模型验收记录" data-part="附录" data-pm="[[P4C5]]">
+  <div class="chapter-head">
+    <div class="kicker">REAL MODEL VERIFICATION</div>
+    <h1>真实模型验收记录<span class="pm">[[P4C5]]</span></h1>
+    <div class="no">E</div>
+  </div>
+
+  <p class="lead">第 1 版文档主要依据项目验收记录与隔离界面。用户完成账号登录和模型配置后，本文补充一轮真实模型验收：在只保留配置与凭据的隔离副本中，实际调用已授权模型，覆盖通用 Agent、简历经历、模拟面试与知识计划。以下结果是<b>一次运行观察</b>，不是性能基准，也不代表所有账号、网络和模型都相同。</p>
+
+  <h2>E.1 验收环境与方法</h2>
+  <table class="compact">
+    <thead><tr><th style="width:30mm">项目</th><th>实际值</th></tr></thead>
+    <tbody>
+      <tr><td>产品版本</td><td>PiCareer 0.1.15，Windows 10/11 x64，打包版 <code>release/win-unpacked/PiCareer.exe</code></td></tr>
+      <tr><td>模型</td><td>已保存的 OpenAI Codex 订阅授权；模型 <code>gpt-6-luna</code>。本文不记录账号、令牌或回调地址</td></tr>
+      <tr><td>数据隔离</td><td>复制真实用户目录中的 <code>config</code>、<code>secrets</code>、<code>secret-index</code> 与 Windows 加密所需的 <code>Local State</code>；删除聊天、简历、收藏、面试、计划等业务记录；不复制会话与材料目录</td></tr>
+      <tr><td>截图内容</td><td>提示词、项目概述、JD 与企业名均为本文编写的合成内容；截图中不包含真实简历、聊天或个人身份信息</td></tr>
+      <tr><td>时间</td><td>2026-11-09，Asia/Shanghai；网络走当前系统代理</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout warn">
+    <span class="t">隔离副本仍包含凭据</span>
+    为了让真实模型可用，隔离副本保留了加密后的凭据与 Windows 解密所需的 <code>Local State</code>。这些文件只在本机临时目录使用，验收结束后删除；不进入文档、Git 或任何交付包。截图中的模型名是产品配置，不是账号信息。
+  </div>
+
+  <h2>E.2 通用 Agent：连接与上下文</h2>
+  <p>在「通用 Agent」新建会话，输入“请只回复：PiCareer 连接正常。”。模型在约 <b>2.6 秒</b>内返回“PiCareer 连接正常。”，界面显示“已完成思考与工具调用”和“回答结束”，Context 估算为 <b>约 1k / 272k tokens</b>。这说明授权、模型选择、流式回复与轮次收尾链路均可用。</p>
+
+  <div class="figure">
+    <img src="../images/real-chat.png" alt="真实模型通用 Agent 验收">
+    <div class="cap"><b>图 E-1</b> 真实模型的最小对话：约 2.6 秒返回，Context 约 1k / 272k；截图只包含合成提示词。</div>
+  </div>
+
+  <p>这次调用没有选择工作目录，因此只验证了通用对话与模型连接，没有验证文件或 PowerShell 工具。Context 是 Pi SDK 的估算值，不是订阅额度；272k 是该模型在模型目录中的容量描述，实际可用量仍受供应商与账户影响。</p>
+
+  <h2>E.3 简历经历：真实生成与事实约束</h2>
+  <p>使用一段明确标注为“个人学习项目”的合成概述，不导入任何材料：</p>
+  <div class="quote">本人独立完成一个本地桌面求职工作台项目（2026年3月—2026年6月），担任独立开发者。使用 Electron、React 和 SQLite 实现本地数据存储；设计岗位检索与证据核验流程，将职位正文解析为结构化字段；编写 149 项自动化测试。项目为个人学习项目，未发表论文，未商业化。</div>
+  <p>点击生成后，任务在约 <b>21.3 秒</b>完成，产出 3 条经历：</p>
+  <ul>
+    <li>独立开发本地桌面求职工作台，采用 Electron、React 构建应用并使用 SQLite 实现本地数据存储。</li>
+    <li>设计岗位检索与证据核验流程，将职位正文解析为结构化字段。</li>
+    <li>编写149项自动化测试。</li>
+  </ul>
+  <p>三条内容都能回到概述中的事实；“149 项”被保留，“未发表、未商业化”没有被改写成成果。界面显示“已生成并核验文稿，请核对个人事实后复制使用”，证据与修改说明单独折叠。这个结果符合“概述是用户声明，自动核验不能替代用户最终核对”的设计。</p>
+
+  <div class="figure">
+    <img src="../images/real-resume.png" alt="真实模型生成的简历经历">
+    <div class="cap"><b>图 E-2</b> 真实模型生成的 3 条项目经历：名称、时间、角色与条目均可编辑；截图中的项目为合成内容。</div>
+  </div>
+
+  <h2>E.4 模拟面试：模型生成与检索失败并存</h2>
+  <p>用合成 JD 启动一场面试。检索阶段没有取得可用公开资料：Bing 返回内容与查询词不匹配，DuckDuckGo 被公开地址校验阻止；界面没有伪造来源，而是显示“资料检索失败，将基于 JD 模拟”。模型随后生成 8 道主问题，首题在约 <b>45 秒</b>内出现（含检索等待）。</p>
+  <div class="quote">【模拟问题】请介绍一个你参与过的 Agent 项目：目标、你的职责、关键技术方案和最终结果分别是什么？</div>
+  <p>界面同时显示“主问题 1/8 · 追问 0/2”、参考资料为空与“没有来源支持的问题属于模拟题”。这说明面试模块在外部检索失败时仍能基于 JD 工作，但不会把问题包装成企业真题。45 秒包含失败检索的等待，不能当作模型首字延迟。</p>
+
+  <div class="figure">
+    <img src="../images/real-interview.png" alt="真实模型模拟面试">
+    <div class="cap"><b>图 E-3</b> 真实模型面试：检索失败后明确回退到 JD 模拟，8 道主问题、每题最多 2 次追问。</div>
+  </div>
+
+  <h2>E.5 知识计划：模型选择与本地兜底</h2>
+  <p>输入合成 JD“Agent 开发工程师，要求熟悉 Python、RAG、LangGraph、工具调用、评测与部署”，模型在约 <b>8.1 秒</b>内生成 <b>38 条</b>计划，并在计划说明中写明：企业公开资料为空，选择依据仅为 JD 与候选知识点匹配，未把网友面经视为官方题库。</p>
+  <p>对照第 1 版中的本地兜底结果：同一类 JD 在模型不可用时曾生成 141 条标签匹配计划。两者数量差异说明“模型复核”会显著收窄范围；它不是简单的标签匹配，也不能保证覆盖所有应复习的知识点。用户仍应结合岗位与自身薄弱项调整。</p>
+
+  <div class="figure">
+    <img src="../images/real-plan.png" alt="真实模型知识计划">
+    <div class="cap"><b>图 E-4</b> 真实模型生成 38 条知识计划：说明中明确“企业公开资料为空”，只依据 JD 与候选知识点。</div>
+  </div>
+
+  <h2>E.6 观察结论与支持含义</h2>
+  <table class="compact">
+    <thead><tr><th style="width:32mm">测试</th><th>输入／条件</th><th style="width:26mm">观察</th><th style="width:24mm">结论</th></tr></thead>
+    <tbody>
+      <tr><td>通用 Agent</td><td>最小回复，无目录</td><td>约 2.6 秒；Context 约 1k/272k</td><td>连接、流式与收尾正常</td></tr>
+      <tr><td>简历经历</td><td>合成概述，无材料</td><td>约 21.3 秒；3 条，149 保留</td><td>事实约束生效</td></tr>
+      <tr><td>模拟面试</td><td>合成 JD；搜索失败</td><td>约 45 秒；8 题；回退提示可见</td><td>失败不伪造来源</td></tr>
+      <tr><td>知识计划</td><td>合成 JD；无企业资料</td><td>约 8.1 秒；38 条</td><td>模型选择明显收窄</td></tr>
+    </tbody>
+  </table>
+
+  <p>对支持的直接含义：<b>授权成功与模型可用已被真实验证</b>；用户遇到“模型不可用”时，应先看授权阶段、模型选择与连接测试，而不是直接怀疑账号。其次，<b>外部检索仍可能失败</b>，面试、岗位与资讯都必须保留“回退到 JD／缓存／手动输入”的路径。最后，<b>生成结果仍需用户核对</b>；真实模型能遵守引用约束，但一次合成材料通过不代表任意真实项目都已核实。</p>
+
+  <div class="callout">
+    <span class="t">本轮未验证</span>
+    没有执行完整的 8 题问答与面试报告、没有生成带材料的简历、没有测试完整简历导出、没有重新验证真实 Tavily 或招聘网站；也没有在干净 Windows 虚拟机或其他供应商上重复。上述结果只覆盖当前机器、当前账号与当前模型的一次运行。
+  </div>
+</section>
+
+<!-- ================= 附录 F 知识库切分 ================= -->
+<section class="chapter" id="p4c6" data-num="F" data-title="知识库切分与导入包" data-part="附录" data-pm="[[P4C6]]">
+  <div class="chapter-head">
+    <div class="kicker">KNOWLEDGE PACKAGE</div>
+    <h1>知识库切分与导入包<span class="pm">[[P4C6]]</span></h1>
+    <div class="no">F</div>
+  </div>
+
+  <p class="lead">整本 PDF 不适合作为一个检索片段：它跨越产品手册、技术架构和故障案例，任何一次提问都只能命中其中很小一部分。本文按章节切分，并为每个片段标注版本、来源、证据等级与页码范围；长章节再按二级标题细分为 section 片段。配套目录 <code>knowledge/</code> 可直接校验并导入本地 SQLite FTS5 索引。</p>
+
+  <h2>F.1 切分原则</h2>
+  <ul>
+    <li><b>先章节、后小节：</b>chapter 片段保留完整上下文；section 片段用于更精确的检索。两者使用同一版本号与来源，不互相替代。</li>
+    <li><b>一个片段一个主题：</b>不把“安装”和“简历”放进同一片段；表格与图注跟随所属章节，不单独成块。</li>
+    <li><b>版本与来源必填：</b>每个片段记录 <code>version</code>、<code>source_docs</code>、<code>evidence_level</code> 与 <code>page_start/page_end</code>；没有来源的内容不进入知识库。</li>
+    <li><b>不覆盖历史：</b>产品升级时新增版本片段，旧版本保留并标注；回答时先按版本过滤。</li>
+    <li><b>失败案例单独标注：</b>案例片段增加 <code>case_ids</code> 与 <code>applicable_versions</code>，避免把旧版本故障套到新版本。</li>
+  </ul>
+
+  <h2>F.2 目录与文件</h2>
+  <pre class="quote"><code>knowledge/
+  README.md              导入与维护说明
+  manifest.json          文档版本、PDF SHA-256、页数、片段统计
+  chapters.jsonl         按章节切分的片段
+  sections.jsonl         按二级标题细分的片段
+  schema.json            字段定义
+  validate.mjs           校验 ID、版本、来源、页码与重复
+  build-index.mjs        导入 SQLite FTS5
+  query.mjs              命令行检索
+  picareer-knowledge.sqlite  生成的知识索引</code></pre>
+
+  <p>当前基线生成 30 个 chapter 片段与 128 个 section 片段；导入 SQLite 后共 158 条记录。chapter 用于完整上下文，section 用于精确命中；两者共享同一版本、来源与页码范围。</p>
+
+  <h2>F.3 字段定义</h2>
+  <table class="compact">
+    <thead><tr><th style="width:34mm">字段</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td><code>id</code></td><td>稳定 ID，例如 <code>pc-0.1.15-p1c1</code>；section 片段追加 <code>-s01</code></td></tr>
+      <tr><td><code>doc_id</code></td><td>本文档标识，固定为 <code>picareer-manual-tech</code></td></tr>
+      <tr><td><code>chapter_no / title / part</code></td><td>章节号、标题与所属部分，用于展示与过滤</td></tr>
+      <tr><td><code>version</code></td><td>适用产品版本，例如 <code>0.1.15</code></td></tr>
+      <tr><td><code>source_docs</code></td><td>该章依据的项目文档或代码路径数组</td></tr>
+      <tr><td><code>evidence_level</code></td><td><code>A</code> 本次复现／源码核对，<code>B</code> 项目验收记录，<code>C</code> 产品说明与设计约定</td></tr>
+      <tr><td><code>page_start / page_end</code></td><td>在最终 PDF 中的页码范围，便于人工回查</td></tr>
+      <tr><td><code>tags</code></td><td>检索标签，如 <code>安装</code>、<code>OAuth</code>、<code>岗位证据</code>、<code>简历事实</code></td></tr>
+      <tr><td><code>case_ids</code></td><td>关联故障案例编号，仅案例章节使用</td></tr>
+      <tr><td><code>content</code></td><td>清理后的正文；保留标题层级、列表与表格文字，不包含页眉页脚</td></tr>
+    </tbody>
+  </table>
+
+  <h2>F.4 导入与检索</h2>
+  <div class="steps">
+    <div><b>校验。</b>运行 <code>node knowledge/validate.mjs</code>，检查 ID 唯一、版本非空、来源数组非空、页码递增、正文非空与重复内容。</div>
+    <div><b>建索引。</b>运行 <code>node knowledge/build-index.mjs</code>，把 chapters 与 sections 写入 SQLite，并建立 FTS5 全文索引。</div>
+    <div><b>试检索。</b>运行 <code>node knowledge/query.mjs "严格匹配 岗位证据"</code>，返回片段 ID、标题、版本、页码与摘要。</div>
+    <div><b>接入支持 Agent。</b>检索结果作为上下文时，必须带 <code>id</code>、<code>version</code>、<code>page_start</code> 与 <code>source_docs</code>；回答中引用这些字段，而不是只复述文字。</div>
+  </div>
+
+  <h2>F.5 版本与维护</h2>
+  <p>PDF 更新后，重新生成片段并递增 <code>manifest.json</code> 的 <code>doc_version</code>；旧版本片段保留，查询时按 <code>version</code> 过滤。若同一章节的内容发生变化，新增片段 ID 或更新 <code>content_sha256</code>，不要静默覆盖旧内容。每次导入前记录 PDF 的 SHA-256 与页数，确保片段页码与最终文件一致。</p>
+
+  <div class="callout">
+    <span class="t">知识库不是“把 PDF 丢进去”</span>
+    切分的价值在于可引用、可过滤、可维护：回答必须能回到章节、版本与页码；旧版本结论不能冒充当前版本；模拟数据、故障案例与产品说明要分开标注。做不到这三点，检索得再多也只是把不确定性放大。
+  </div>
+</section>

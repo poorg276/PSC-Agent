@@ -1,0 +1,127 @@
+<div class="page-break"></div>
+<!-- ================= 附录 ================= -->
+<section class="chapter first" id="p4c1" data-num="A" data-title="版本时间线" data-part="附录" data-pm="[[P4C1]]">
+  <div class="chapter-head">
+    <div class="kicker">VERSION HISTORY</div>
+    <h1>版本时间线 0.1.0–0.1.15<span class="pm">[[P4C1]]</span></h1>
+    <div class="no">A</div>
+  </div>
+
+  <p class="lead">下列时间线只记录与用户行为、支持判断相关的变更；完整实现细节以对应版本文档为准。时间来自项目 README 与验收记录，均为 2026 年 10 月。</p>
+
+  <div class="timeline">
+    <div class="item"><span class="v">0.1.0</span><span class="d">2026-10-10</span><p>首个可安装版本：首页、四入口、流式聊天、模型配置、OAuth、Windows 加密、文件审批、Tavily、面试、Hot100、210 条知识库。</p></div>
+    <div class="item"><span class="v">0.1.1</span><span class="d">2026-10-10</span><p>外观调整：侧栏独立滚动与固定底部、暖白标题栏、6px 滚动条、中文字体与中性文字色。</p></div>
+    <div class="item"><span class="v">0.1.2</span><span class="d">2026-10-10</span><p>授权修复：连接后立即弹窗并自动打开浏览器；取消、重试、1455 端口占用、旧链接失效与设备码。</p></div>
+    <div class="item"><span class="v">0.1.3</span><span class="d">2026-10-10</span><p>授权链路接入系统代理；修复 Base64URL／UTF-8 解析；区分交换、验证、保存、刷新阶段。</p></div>
+    <div class="item"><span class="v">0.1.4</span><span class="d">2026-10-10</span><p>通用 Agent 重构：历史侧栏、重命名、左右消息、Markdown、后台流式恢复、日期／天气／搜索／Skills。</p></div>
+    <div class="item"><span class="v">0.1.5</span><span class="d">2026-10-10</span><p>免密钥搜索与公开正文；删除对话；标题栏与模型位置调整；Context 估算与结束状态。</p></div>
+    <div class="item"><span class="v">0.1.6</span><span class="d">2026-10-10</span><p>三行工具进度；对话产物登记、删除预览、Windows 回收站、清理失败重试。</p></div>
+    <div class="item"><span class="v">0.1.7</span><span class="d">2026-10-10</span><p>企业岗位检索重建：严格匹配与相关备选、逐字段证据、过滤非招聘网页、官网入口。</p></div>
+    <div class="item"><span class="v">0.1.8</span><span class="d">2026-10-11</span><p>手动录入目标岗位：离线保存、编辑、详情、删除、转入面试或知识点。</p></div>
+    <div class="item"><span class="v">0.1.9</span><span class="d">2026-10-11</span><p>Hot100 改为官方题意与模板、官网复制提交、每题独立正误与心得；移除本地判题入口。</p></div>
+    <div class="item"><span class="v">0.1.10</span><span class="d">2026-10-11</span><p>工作台：16 个企业招聘官网、三条 Agent 技术进展、今日知识点；资讯每日更新。</p></div>
+    <div class="item"><span class="v">0.1.11</span><span class="d">2026-10-11</span><p>简历优化与完整简历：材料分析、事实核验、模板、Word／PDF 导出；后续版本收窄入口。</p></div>
+    <div class="item"><span class="v">0.1.12</span><span class="d">2026-10-11</span><p>窗口标题、卡片顺序与图标；资讯按本地日期每天首次启动尝试一次，跨日激活检查。</p></div>
+    <div class="item"><span class="v">0.1.13</span><span class="d">2026-10-11</span><p>项目与科研经历优化；完整简历入口显示开发中；旧草稿保留；材料导入与事实边界调整。</p></div>
+    <div class="item"><span class="v">0.1.14</span><span class="d">2026-10-13</span><p>岗位官网入口与来源识别；Electron 安全重定向；动态职位读取；万兴科技入口；手动录入保留。</p></div>
+    <div class="item"><span class="v">0.1.15</span><span class="d">2026-10-14</span><p>修复源码导入误计数、独立贡献重复追问、材料数字摘要失败；大材料自动分批；本文基线。</p></div>
+  </div>
+
+  <div class="callout">
+    <span class="t">版本不是“越新越适合所有人”</span>
+    0.1.15 是本文基线，但用户可能仍在使用旧版本。回答问题时必须先确认版本；旧版本的入口、限制和错误文案可能不同。尤其注意 0.1.9 的 Hot100 判题、0.1.11 的完整简历、0.1.13 的入口收窄，这三处跨版本差异最容易造成误解。
+  </div>
+</section>
+
+<section class="chapter" id="p4c2" data-num="B" data-title="术语表" data-part="附录" data-pm="[[P4C2]]">
+  <div class="chapter-head">
+    <div class="kicker">GLOSSARY</div>
+    <h1>术语表<span class="pm">[[P4C2]]</span></h1>
+    <div class="no">B</div>
+  </div>
+
+  <table class="long">
+    <thead><tr><th style="width:34mm">术语</th><th>在 PiCareer 语境中的含义</th></tr></thead>
+    <tbody>
+      <tr><td>Agent</td><td>能根据目标调用工具、观察结果并继续决策的模型循环；PiCareer 的通用 Agent 还包含审批、路径限制与会话恢复。</td></tr>
+      <tr><td>Pi SDK</td><td>本地源码构建的 Agent 运行时，提供 ModelRuntime、SessionManager、工具调用与多供应商模型接入。</td></tr>
+      <tr><td>utilityProcess</td><td>Electron 的 Node 子进程；PiCareer 用它承载 Service、SQLite、Pi 会话、搜索与材料解析。</td></tr>
+      <tr><td>preload</td><td>渲染进程与主进程之间的受限桥；只暴露白名单接口，不暴露 Node 或任意 IPC。</td></tr>
+      <tr><td>CSP</td><td>内容安全策略；限制页面可加载的脚本、样式、图片、连接与 frame 来源。</td></tr>
+      <tr><td>safeStorage</td><td>Electron 提供的 Windows 系统加密接口；PiCareer 用它加密 API Key 与 OAuth 令牌。</td></tr>
+      <tr><td>OAuth / PKCE</td><td>订阅授权的标准流程；PiCareer 保留 SDK 的 PKCE、state 与令牌交换，只增加代理、阶段与诊断。</td></tr>
+      <tr><td>SSE</td><td>Server-Sent Events；Codex 模型流式回复使用，避免 WebSocket 走不同的代理路径。</td></tr>
+      <tr><td>SSRF</td><td>服务端请求伪造；PiCareer 通过公网 IP、协议、端口、DNS 与逐跳重定向校验限制公开网页读取。</td></tr>
+      <tr><td>JSON-LD / JobPosting</td><td>招聘页面中的结构化数据；每个 JobPosting 作为独立证据块解析，不执行脚本。</td></tr>
+      <tr><td>RAG</td><td>检索增强生成；PiCareer 的岗位与资讯不是典型向量 RAG，而是“公开检索 + 正文核验 + 模型提取”的证据管线。</td></tr>
+      <tr><td>Context</td><td>Pi SDK 估算的会话上下文占用；不是账户额度，自定义模型容量未确认时显示“暂不可用”。</td></tr>
+      <tr><td>revision</td><td>聊天记录的版本号；前端按 revision 合并快照，避免旧流式结果覆盖新状态。</td></tr>
+      <tr><td>幂等</td><td>同一请求重复提交不会产生重复结果；用批次 token、测验 ID、预览 token、记录 ID 实现。</td></tr>
+      <tr><td>SHA-256</td><td>用于校验发布包、SDK 源码、文件身份与备份一致性；文中出现的摘要均为项目记录值。</td></tr>
+      <tr><td>证据等级 A/B/C</td><td>本文自定的可信度标记：A 本次复现或源码核对，B 项目验收记录，C 产品说明与设计约定。</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="chapter" id="p4c3" data-num="C" data-title="资料与代码清单" data-part="附录" data-pm="[[P4C3]]">
+  <div class="chapter-head">
+    <div class="kicker">SOURCE REGISTER</div>
+    <h1>资料与代码清单<span class="pm">[[P4C3]]</span></h1>
+    <div class="no">C</div>
+  </div>
+
+  <p class="lead">本文的叙述可以回到以下材料。路径以 PiCareer 项目根目录为基准；验收 JSON 与运行截图不随本文复制，只在需要时由支持人员按版本查阅。</p>
+
+  <h2>C.1 公开说明与验收记录</h2>
+  <ul class="source-list">
+    <li><code>README.md</code>：产品定位、启动、首次配置、各模块使用、数据与恢复、构建命令。</li>
+    <li><code>docs/ARCHITECTURE.md</code>：进程与数据流、核心文件、边界、0.1.4／0.1.5 的补充架构说明。</li>
+    <li><code>docs/ACCEPTANCE.md</code>：0.1.0 初始验收、已执行检查、尚未通过的最终验收项。</li>
+    <li><code>docs/MAINTENANCE.md</code>：Git 基线、提交、发布标签、归档与恢复规则。</li>
+    <li><code>docs/AUTHORIZATION-0.1.2.md</code>、<code>AUTHORIZATION-0.1.3.md</code>：授权交互、代理、Base64URL、阶段诊断。</li>
+    <li><code>docs/AGENT-0.1.4.md</code>、<code>AGENT-0.1.5.md</code>、<code>AGENT-0.1.6.md</code>：聊天状态、搜索、删除、产物清理。</li>
+    <li><code>docs/JOBS-0.1.7.md</code>、<code>JOBS-0.1.8.md</code>、<code>JOBS-0.1.14.md</code>：岗位检索、手动录入、官网入口。</li>
+    <li><code>docs/CODING-0.1.9.md</code>：Hot100 官方快照、刷题记录、旧判题隔离。</li>
+    <li><code>docs/DASHBOARD-0.1.10.md</code>、<code>DASHBOARD-0.1.12.md</code>：工作台资讯、每日更新规则。</li>
+    <li><code>docs/RESUME-0.1.11.md</code>、<code>RESUME-0.1.13.md</code>、<code>RESUME-0.1.15.md</code>：简历材料、事实核验、导入与分批。</li>
+  </ul>
+
+  <h2>C.2 源代码与内容</h2>
+  <p>核心代码分布在 <code>src/desktop/</code>（主进程、worker、隔离网络）、<code>src/core/</code>（service、pi、store、chats／artifacts、search／web-content、jobs／recruitment、resume、study／coding／dashboard）、<code>content/</code>（knowledge.json、problems.json）与 <code>scripts/</code>（build.mjs、prepare-sdk.mjs）。各文件职责与正文第 12～18 章对应，不再逐行重复。</p>
+
+  <h2>C.3 证据文件</h2>
+  <p>各版本验收证据位于 <code>docs/evidence/</code>，包括授权、聊天、岗位、简历、内容校验、安装与启动记录。运行截图位于 <code>docs/screenshots/</code>，可能包含真实用户状态，因此不纳入 Git；本文使用的截图来自隔离测试数据目录，另行生成。</p>
+</section>
+
+<section class="chapter" id="p4c4" data-num="D" data-title="本次核查记录" data-part="附录" data-pm="[[P4C4]]">
+  <div class="chapter-head">
+    <div class="kicker">VERIFICATION RECORD</div>
+    <h1>本次核查记录<span class="pm">[[P4C4]]</span></h1>
+    <div class="no">D</div>
+  </div>
+
+  <p class="lead">这一节区分“本文实际做了什么”和“项目曾经记录了什么”。凡未执行的项目，明确写为未执行；不把项目的历史验收当作本次结果。</p>
+
+  <h2>D.1 实际执行</h2>
+  <table class="compact">
+    <thead><tr><th style="width:44mm">检查</th><th>方法</th><th style="width:34mm">结果</th></tr></thead>
+    <tbody>
+      <tr><td>界面截图</td><td>以 <code>PICAREER_TEST_DATA</code> 指向隔离目录启动 0.1.15 打包版，显示窗口后逐页截图；不接触真实用户数据</td><td>工作台、聊天、设置、岗位、手动岗位、简历入口、简历编辑、面试、Hot100、知识计划 10 张</td></tr>
+      <tr><td>C11/C12/C13 复现</td><td>隔离目录未配置模型后点击生成；继承 <code>ELECTRON_RUN_AS_NODE=1</code> 启动；构造 <code>user_version=2</code> 的数据库后启动 0.1.15</td><td>分别得到“请先配置模型”、退出码 0 无窗口、后台退出（1）；详见案例</td></tr>
+      <tr><td>类型检查</td><td><code>node node_modules/typescript/bin/tsc --noEmit</code></td><td>通过（exit 0）</td></tr>
+      <tr><td>自动化回归</td><td><code>node --test --test-isolation=none tests/*.test.ts</code></td><td>149/149 通过（fail 0；约 16.9 秒）</td></tr>
+      <tr><td>版式构建</td><td>Chrome 156 headless 打印 A4 PDF；检查页数、页眉页脚、图片、目录页码</td><td>44 页 A4（595×842 pt）；封面无页码，页眉页脚与目录页码正常</td></tr>
+    </tbody>
+  </table>
+
+  <h2>D.2 未执行</h2>
+  <ul>
+    <li>没有使用真实付费模型账户重新执行聊天、面试、简历与岗位生成；界面截图与故障复现均不发送模型请求。</li>
+    <li>没有在独立干净 Windows 虚拟机、Windows 11 或多显示器环境重新安装验收；没有重新验证真实 Tavily 账户、真实 OAuth 登录或所有招聘平台的可读取性。</li>
+    <li>没有对 210 条知识逐条复核来源段落；没有修改 PiCareer 源代码，本文不构成修复提交。</li>
+  </ul>
+
+  <h2>D.3 使用建议</h2>
+  <p>这份文档可作为 PiCareer Support 的第一批知识材料：手册面向用户，技术部分帮助支持人员理解边界，案例库用于分诊。下一阶段应按章节切分、标注版本与来源后导入知识库，不要把整本 PDF 当作单一检索片段。</p>
+</section>

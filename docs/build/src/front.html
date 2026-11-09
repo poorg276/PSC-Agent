@@ -1,0 +1,94 @@
+<!-- ================= 封面 ================= -->
+<div class="cover">
+  <div class="grid"></div>
+  <div class="band"></div>
+  <div class="edition"><div class="v">0.1.15</div><div class="l">PRODUCT BASELINE</div></div>
+  <div class="content">
+    <div class="brand">
+      <div class="logo">π</div>
+      <div class="name">PiCareer<small>PERSONAL AGENT</small></div>
+    </div>
+    <div class="kicker">PRODUCT MANUAL &amp; TECHNICAL ARCHITECTURE</div>
+    <h1>产品说明书<span>与技术架构</span></h1>
+    <div class="sub">以公开说明、架构文档与经核实的故障案例为基础，面向使用者、支持人员与技术读者建立的第一批 PiCareer 知识材料。</div>
+    <div class="tags">
+      <span class="tag">用户使用指南</span>
+      <span class="tag">技术栈详解</span>
+      <span class="tag">故障案例库</span>
+      <span class="tag">支持排障手册</span>
+    </div>
+  </div>
+  <div class="meta">
+    <div><b>PiCareer Support · 知识材料 第 1 版</b>独立支持项目的基础资料，不是 PiCareer 官方出版物</div>
+    <div style="text-align:right"><b>2026 年 11 月</b>适用产品版本 0.1.15 · Windows 10/11 x64</div>
+  </div>
+</div>
+
+<!-- ================= 文档说明 ================= -->
+<div class="frontmatter">
+  <div class="chapter-head" style="border-bottom-color:#315c49">
+    <div class="kicker">DOCUMENT CONTROL</div>
+    <h1 style="font-size:23pt">文档说明</h1>
+    <div class="no">00</div>
+  </div>
+
+  <p class="lead">这份材料回答三个问题：PiCareer 是什么、怎么用；它是怎样被构建出来的；当它不按预期工作时，支持人员如何依据证据判断和处理。文档同时服务于产品使用者、支持人员和准备接手该项目的技术读者。</p>
+
+  <div class="doc-control">
+    <h3>文档信息</h3>
+    <table class="compact">
+      <tr><td>文档名称</td><td>PiCareer 产品说明书与技术架构（知识材料 第 1 版）</td></tr>
+      <tr><td>产品基线</td><td>PiCareer 0.1.15，Windows 10/11 x64；本地单用户、本地存储</td></tr>
+      <tr><td>读者对象</td><td>产品用户、支持人员、Agent 知识库维护者、技术评审与后续开发者</td></tr>
+      <tr><td>资料范围</td><td>项目 README、架构说明、各版本验收记录、随包内容清单、可复核源代码，以及隔离数据目录中的界面与故障复现</td></tr>
+      <tr><td>编制日期</td><td>2026-11-09；第 1 版，已完成结构、事实与版式复核，未替代项目正式验收</td></tr>
+    </table>
+  </div>
+
+  <h2>证据等级</h2>
+  <p>本文不把“文档里写过”与“本次实际验证过”混为一谈。正文中的判断按以下三级标注；未标注的叙述通常来自项目公开说明与源代码的交叉核对。</p>
+  <div class="evidence-legend">
+    <div><b>A 级 · 本次复现或源码核对</b>隔离运行、截图或读取实现后确认；仍需注意版本与环境差异。</div>
+    <div><b>B 级 · 项目验收记录</b>对应版本文档与 evidence 有明确记录；本次未逐项重跑。</div>
+    <div><b>C 级 · 产品说明与设计约定</b>解释“应该怎样”，不单独证明某个环境中的实际结果。</div>
+  </div>
+
+  <h2>边界与声明</h2>
+  <div class="notice">
+    <b>非官方资料。</b>本文由 PiCareer Support 项目独立编制，不是 PiCareer 官方文档，也不代表产品团队的承诺。产品功能、界面和限制以对应版本的公开说明与实际运行结果为准；当本文与产品发生冲突时，应先核对版本，再以可复现的证据修正本文。
+  </div>
+  <p>文中的界面截图来自 <b>隔离的测试数据目录</b>，不包含真实账号、个人简历、聊天记录或密钥。故障案例只保留可公开的诊断信息，不记录授权码、令牌、完整回调地址或代理地址。涉及第三方页面、题库与平台的内容，其权利归各自权利人所有。本文不提供远程执行修复命令的服务承诺；涉及本机命令、文件写入、凭据和第三方账号的操作，应由用户在知情的前提下自行确认。</p>
+</div>
+
+<!-- ================= 目录 ================= -->
+<div class="toc-page">
+  <div class="chapter-head" style="border-bottom-color:#315c49">
+    <div class="kicker">CONTENTS</div>
+    <h1 style="font-size:23pt">目录</h1>
+    <div class="no">—</div>
+  </div>
+  <!--TOC-->
+</div>
+
+<!-- ================= 第一部分 ================= -->
+<div class="part">
+  <div class="rings"></div>
+  <div class="inner">
+    <div class="no">01</div>
+    <div class="eyebrow">PART ONE · PRODUCT MANUAL</div>
+    <h1>产品使用说明书</h1>
+    <div class="desc">从安装、模型配置到六个工作模块的日常使用。每一节都说明“在哪里做、会发生什么、边界在哪里”，并使用隔离数据目录中的真实界面作为图示。</div>
+    <div class="list">
+      <div><span>01</span>产品概览</div>
+      <div><span>02</span>安装、启动与首次配置</div>
+      <div><span>03</span>模型与搜索配置</div>
+      <div><span>04</span>工作台</div>
+      <div><span>05</span>通用 Agent</div>
+      <div><span>06</span>简历优化</div>
+      <div><span>07</span>企业岗位</div>
+      <div><span>08</span>模拟面试、Hot100 与知识背诵</div>
+      <div><span>09</span>数据、备份与恢复</div>
+      <div><span>10</span>安全、隐私与常见问题</div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,14 @@
+{
+  "doc_id": "picareer-manual-tech",
+  "doc_title": "PiCareer 产品说明书与技术架构",
+  "doc_version": "1.1",
+  "product_version": "0.1.15",
+  "pdf_file": "PiCareer-产品说明书与技术架构-v0.1.15.pdf",
+  "pdf_sha256": "c7b65a72438752292ef97e8c0c1f3d4a24860051f02db9f62ceaa92c6dec55da",
+  "pdf_pages": 44,
+  "generated_at": "2026-11-09T05:43:09.977Z",
+  "chapter_count": 30,
+  "section_count": 128,
+  "chunk_schema": "schema.json",
+  "source_note": "由 build/src 的章节源文件切分；页码由最终 PDF 的章节 kicker 映射。"
+}

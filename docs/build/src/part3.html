@@ -1,0 +1,271 @@
+<!-- ================= 第三部分 ================= -->
+<div class="part">
+  <div class="rings"></div>
+  <div class="inner">
+    <div class="no">03</div>
+    <div class="eyebrow">PART THREE · FAILURE CASE LIBRARY</div>
+    <h1>故障案例与支持手册</h1>
+    <div class="desc">从项目验收记录、源代码与本次隔离复现中整理的 13 个案例。每个案例都写明现象、根因、处理、验证方式与证据等级；最后给出支持人员可直接执行的分诊流程。</div>
+    <div class="list">
+      <div><span>21</span>案例整理方法与分类</div>
+      <div><span>22</span>授权与启动案例 C01–C02、C12–C13</div>
+      <div><span>23</span>聊天、删除与数据案例 C03–C04</div>
+      <div><span>24</span>岗位与资讯案例 C05–C06、C09</div>
+      <div><span>25</span>简历与学习案例 C07–C08、C10–C11</div>
+      <div><span>26</span>支持 playbook 与案例索引</div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= 21 案例整理方法 ================= -->
+<section class="chapter first" id="p3c1" data-num="21" data-title="案例整理方法与分类" data-part="第三部分 · 故障案例与支持手册" data-pm="[[P3C1]]">
+  <div class="chapter-head">
+    <div class="kicker">METHOD · EVIDENCE · TAXONOMY</div>
+    <h1>案例整理方法与分类<span class="pm">[[P3C1]]</span></h1>
+    <div class="no">21</div>
+  </div>
+
+  <p class="lead">故障案例的价值不在“故事”，而在可复用的判断：什么现象、在哪个版本、由哪一层引起、怎样验证、用户下一步做什么。本文的案例只使用三类材料：项目公开的版本记录与验收证据、可复核的源代码，以及本次在隔离数据目录中的实际复现。</p>
+
+  <h2>21.1 收录标准</h2>
+  <ul>
+    <li><b>可定位：</b>能说明发生在哪个版本、哪个模块、哪一层，而不是笼统的“用不了”。</li>
+    <li><b>可验证：</b>有验收记录、源代码路径或本次复现步骤；没有证据的猜测不写成根因。</li>
+    <li><b>可行动：</b>给出用户可执行的下一步，以及支持人员应收集的最少信息。</li>
+    <li><b>不过度归因：</b>外部网站限制、模型能力、用户配置与产品缺陷分开描述；旧版本未保留诊断时明确说“不能确定”。</li>
+  </ul>
+
+  <h2>21.2 故障分层</h2>
+  <table>
+    <thead><tr><th style="width:26mm">层</th><th>典型现象</th><th style="width:44mm">先看什么</th></tr></thead>
+    <tbody>
+      <tr><td>启动／进程</td><td>双击无窗口、进程秒退、后台退出、窗口空白</td><td>启动方式、环境变量、数据目录、数据库版本、杀毒软件</td></tr>
+      <tr><td>界面／状态</td><td>切页丢流、重命名回退、停止后仍显示运行、删除后复活</td><td>版本、是否生成中、是否有迟到事件、是否重启</td></tr>
+      <tr><td>数据／存储</td><td>记录丢失、数据库被锁、恢复后材料缺失、升级后打不开</td><td>是否完整备份、数据库 SHA、<code>.backup</code>、user_version</td></tr>
+      <tr><td>模型／授权</td><td>401/403、协议解析失败、授权阶段失败、Context 不可用</td><td>供应商、模型 ID、协议、授权阶段、错误分类</td></tr>
+      <tr><td>网络／外部站点</td><td>搜索空、验证页、HTTP 403/429、代理失败、岗位为 0</td><td>错误分类、系统代理、目标站点、是否登录／验证</td></tr>
+      <tr><td>内容／核验</td><td>岗位证据不符、简历被阻止、数字／成果状态无依据</td><td>引用原文、事实 ID、材料范围、是否分批</td></tr>
+    </tbody>
+  </table>
+
+  <h2>21.3 证据等级</h2>
+  <div class="evidence-legend">
+    <div><b>A · 本次复现</b>在隔离数据目录中实际运行并观察到的结果；本文 C11、C12、C13 属于此类。</div>
+    <div><b>B · 项目记录</b>对应版本文档与 evidence 中有明确验证记录；本次未逐项重跑。</div>
+    <div><b>C · 源码／设计核对</b>通过阅读实现确认机制与边界，但未构造完整运行复现。</div>
+  </div>
+
+  <div class="callout warn">
+    <span class="t">先说“不能确定”</span>
+    0.1.2 的授权失败在旧版本中没有保留足够诊断，文档明确写了“不能确定用户当时命中了哪一处”。这类案例应如实保留不确定性，而不是为了故事完整编一个单一根因。
+  </div>
+</section>
+
+<!-- ================= 22 授权与启动案例 ================= -->
+<section class="chapter" id="p3c2" data-num="22" data-title="授权与启动案例" data-part="第三部分 · 故障案例与支持手册" data-pm="[[P3C2]]">
+  <div class="chapter-head">
+    <div class="kicker">AUTH · STARTUP · DATA VERSION</div>
+    <h1>授权与启动案例<span class="pm">[[P3C2]]</span></h1>
+    <div class="no">22</div>
+  </div>
+
+  <div class="case">
+    <div class="case-head"><span class="id">C01</span><span class="title">浏览器显示授权成功，PiCareer 仍显示失败</span><span class="ver">0.1.2 → 0.1.3</span></div>
+    <div class="case-body">
+      <div class="row"><div class="k">现象</div><div class="v">浏览器回调页已显示成功，应用弹窗却报授权失败；0.1.2 把所有后续错误统一显示为“失败”，无法判断卡在令牌交换、验证、加密保存还是模型刷新。</div></div>
+      <div class="row"><div class="k">环境</div><div class="v">Windows，系统代理 <code>127.0.0.1:7890</code>；OpenAI Codex 订阅授权。</div></div>
+      <div class="row"><div class="k">根因</div><div class="v">后台 Node 请求没有接入系统代理；同一授权服务的无凭据 HEAD 探测直连返回 403、经代理返回 405，说明网络路径不同。另用合成令牌复现了 SDK 对部分合法 Base64URL 令牌的解析失败。旧版未保留详细诊断，<b>不能确定</b>用户当时命中哪一处。</div></div>
+      <div class="row"><div class="k">处理</div><div class="v">0.1.3 将授权、令牌刷新与 Codex 模型请求接入 Electron 解析的系统代理；本地 OAuth 回调保持直连；修复 Base64URL／UTF-8 解析；弹窗分阶段显示，错误区分 HTTP、网络／代理、令牌无效、保存失败；SQLite 只保留最近 50 条分类诊断。</div></div>
+      <div class="row"><div class="k">验证</div><div class="v">真实 Pi SDK + 本地 HTTPS 模拟令牌服务验证回调、长令牌加密、刷新、SSE；本地代理验证 CONNECT 路径与失败不绕过。<b>真实账号登录在该版本仍标记为未验证。</b></div></div>
+      <div class="verdict"><b>证据等级 B</b> · 来源 <code>docs/AUTHORIZATION-0.1.2.md</code>、<code>docs/AUTHORIZATION-0.1.3.md</code>。支持建议：只收集阶段、错误分类、HTTP 状态与诊断编号，不索要授权码、令牌或完整回调地址。</div>
+    </div>
+  </div>
+
+  <div class="case">
+    <div class="case-head"><span class="id">C02</span><span class="title">回调端口 1455 被占用，或旧授权链接失效</span><span class="ver">0.1.2</span></div>
+    <div class="case-body">
+      <div class="row"><div class="k">现象</div><div class="v">浏览器完成账号选择后无法回到应用；或重试时继续使用上一轮的浏览器链接，始终失败。</div></div>
+      <div class="row"><div class="k">根因</div><div class="v">本地 OAuth 回调使用固定端口 <code>1455</code>，被其他程序占用时无法监听；每次登录有独立 <code>attemptId</code> 与 state，旧链接不属于当前尝试，主进程会拒绝。</div></div>
+      <div class="row"><div class="k">处理</div><div class="v">检测端口不可用并给出中文提示；提供设备码登录与手动回调备用入口；取消后释放端口；旧链接不再可用；授权输入与操作必须匹配当前 attemptId。</div></div>
+      <div class="row"><div class="k">验证</div><div class="v">单元与 Electron 回归覆盖端口占用、取消释放、重复提交、迟到输入、手动回调、设备码、超时与旧链接拒绝。</div></div>
+      <div class="verdict"><b>证据等级 B</b> · 来源 <code>docs/AUTHORIZATION-0.1.2.md</code>。支持建议：先关闭占用 1455 的其他授权工具或旧实例；重试必须重新点「连接」，不要复用旧回调地址。</div>
+    </div>
+  </div>
+
+  <div class="case">
+    <div class="case-head"><span class="id">C12</span><span class="title">双击后进程立即退出：ELECTRON_RUN_AS_NODE</span><span class="ver">0.1.15 · 本次复现</span></div>
+    <div class="case-body">
+      <div class="row"><div class="k">现象</div><div class="v">启动 <code>PiCareer.exe</code> 后进程以退出码 0 结束，没有窗口、没有 stderr；自动化工具报 <code>Process failed to launch!</code>。从桌面快捷方式启动则正常。</div></div>
+      <div class="row"><div class="k">环境</div><div class="v">Windows；当前终端继承了 <code>ELECTRON_RUN_AS_NODE=1</code>（某些 IDE、Agent 终端或 Node 集成环境会设置）。</div></div>
+      <div class="row"><div class="k">根因</div><div class="v">Electron 检测到该变量后以纯 Node 模式运行 <code>PiCareer.exe</code>，不会加载应用的 main 入口，因此没有窗口并以 0 退出。应用本身没有崩溃。</div></div>
+      <div class="row"><div class="k">处理</div><div class="v">清除该环境变量后从桌面快捷方式、资源管理器或干净终端启动。PowerShell 可用 <code>Remove-Item Env:ELECTRON_RUN_AS_NODE</code>，cmd 可用 <code>set ELECTRON_RUN_AS_NODE=</code>。不要用“重装”解决。</div></div>
+      <div class="row"><div class="k">验证</div><div class="v">本次实际复现：带变量启动退出码 0、无窗口；移除变量后应用正常打开，窗口标题为 <code>PiCareer·辅助求职Agent</code>。<b>A 级</b></div></div>
+      <div class="verdict"><b>证据等级 A</b> · 本次隔离复现。支持建议：先问“从哪里启动、终端里有没有设置 ELECTRON_RUN_AS_NODE”，再判断是否需要恢复数据。</div>
+    </div>
+  </div>
+
+  <div class="case">
+    <div class="case-head"><span class="id">C13</span><span class="title">数据目录来自更高版本，应用只显示“后台进程已退出（1）”</span><span class="ver">0.1.15 · 本次复现</span></div>
+    <div class="case-body">
+      <div class="row"><div class="k">现象</div><div class="v">把 <code>user_version=2</code> 的 <code>picareer.sqlite</code> 放入数据目录后启动 0.1.15，界面停留在“加载本地记录与 Pi 运行时…”，并显示“后台进程已退出（1），请重新打开应用。”</div></div>
+      <div class="row"><div class="k">根因</div><div class="v"><code>Store</code> 读取 <code>PRAGMA user_version</code>，发现高于当前支持的 1，关闭数据库并抛出“此数据由更高版本 PiCareer 创建”。后台进程退出，主进程用通用退出文案覆盖了更具体的错误。</div></div>
+      <div class="row"><div class="k">处理</div><div class="v">使用创建该数据的 PiCareer 版本，或恢复升级前的完整备份；不要修改 <code>user_version</code> 强行打开。保留当前数据库，避免二次破坏。</div></div>
+      <div class="row"><div class="k">验证</div><div class="v">本次实际构造 <code>user_version=2</code> 的数据库并启动 0.1.15，观察到上述界面与退出提示；源代码中确实存在版本保护，但 UI 没有把具体原因透出。<b>A 级，同时暴露一个诊断可改进点。</b></div></div>
+      <div class="verdict"><b>证据等级 A</b> · 本次隔离复现 + 源码核对。支持建议：收集当前应用版本、数据目录来源、最近一次升级/恢复操作；不要删除数据库，先复制备份。</div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 23 聊天、删除与数据案例 ================= -->
+<section class="chapter" id="p3c3" data-num="23" data-title="聊天、删除与数据案例" data-part="第三部分 · 故障案例与支持手册" data-pm="[[P3C3]]">
+  <div class="chapter-head">
+    <div class="kicker">CHAT · DELETE · ARTIFACTS</div>
+    <h1>聊天、删除与数据案例<span class="pm">[[P3C3]]</span></h1>
+    <div class="no">23</div>
+  </div>
+
+  <div class="case">
+    <div class="case-head"><span class="id">C03</span><span class="title">切换页面丢流、重命名被旧输出覆盖</span><span class="ver">0.1.4</span></div>
+    <div class="case-body">
+      <div class="row"><div class="k">现象</div><div class="v">生成中切换到其他模块再返回，流式内容消失或停在旧状态；右键重命名后，稍晚到达的流式保存又把标题改回旧值；启动后看到一直“运行中”的聊天。</div></div>
+      <div class="row"><div class="k">根因</div><div class="v">早期聊天状态与页面组件绑定，卸载即丢；流式保存与重命名并发写同一条记录，旧快照覆盖标题元数据；异常退出没有把 running 状态收尾。</div></div>
+      <div class="row"><div class="k">处理</div><div class="v">0.1.4 改为应用级消费 <code>chatUpdate</code>，按 <code>revision</code> 合并全量快照；保存时保留最新标题元数据；用 <code>turnId</code>、<code>toolCallId</code> 隔离轮次与工具；启动时把 running 改为 <code>interrupted</code>，不重放命令。</div></div>
+      <div class="row"><div class="k">验证</div><div class="v">桌面检查覆盖 125%／150%、切页、重命名竞争、输入法、滚动保持、停止与崩溃恢复；核心测试覆盖旧记录兼容。</div></div>
+      <div class="verdict"><b>证据等级 B</b> · 来源 <code>docs/AGENT-0.1.4.md</code>、<code>docs/ARCHITECTURE.md</code>。支持建议：先确认版本是否 ≥ 0.1.4；生成中切页属于支持行为，不应建议用户重复发送。</div>
+    </div>
+  </div>
+
+  <div class="case">
+    <div class="case-head"><span class="id">C04</span><span class="title">删除对话后“复活”，或清理时误删／漏删文件</span><span class="ver">0.1.5 → 0.1.6</span></div>
+    <div class="case-body">
+      <div class="row"><div class="k">现象</div><div class="v">生成中删除对话，稍后列表又出现该对话；删除后项目文件被误移入回收站；或明明由对话新建的文件没有被清理。</div></div>
+      <div class="row"><div class="k">根因</div><div class="v">流式保存与删除并发，迟到事件可能恢复已删记录；早期没有“产物归属”概念，无法从工具文本可靠判断哪个文件由本对话创建；文件身份、路径与内容可能变化。</div></div>
+      <div class="row"><div class="k">处理</div><div class="v">0.1.5 先写持久删除标记，再等待停止与 finally 完成，再清理独占会话文件；前端维护删除集合过滤迟到事件。0.1.6 增加产物登记：write 新建自动登记，edit 更新指纹，PowerShell／Skills 用 <code>outputPaths</code> 声明；删除前展示清单与 token，复核路径、工作目录身份、文件身份与 SHA-256，只移动“新建、未共享、核验通过”的文件。</div></div>
+      <div class="row"><div class="k">验证</div><div class="v">覆盖生成中删除、迟到事件、重复删除、最后一条删除、项目文件保留、外部修改、跨对话引用、目录联接、移动原文件、清理失败重启恢复。</div></div>
+      <div class="verdict"><b>证据等级 B</b> · 来源 <code>docs/AGENT-0.1.5.md</code>、<code>docs/AGENT-0.1.6.md</code>。支持建议：删除前先看预览；被跳过的文件是保护机制，不是失败；回收站仍可恢复，删除不是安全擦除。</div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 24 岗位与资讯案例 ================= -->
+<section class="chapter" id="p3c4" data-num="24" data-title="岗位与资讯案例" data-part="第三部分 · 故障案例与支持手册" data-pm="[[P3C4]]">
+  <div class="chapter-head">
+    <div class="kicker">JOBS · PORTALS · DAILY NEWS</div>
+    <h1>岗位与资讯案例<span class="pm">[[P3C4]]</span></h1>
+    <div class="no">24</div>
+  </div>
+
+  <div class="case">
+    <div class="case-head"><span class="id">C05</span><span class="title">百科、旅游页被当成岗位；菜单城市被当成工作地点</span><span class="ver">0.1.7</span></div>
+    <div class="case-body">
+      <div class="row"><div class="k">现象</div><div class="v">“严格匹配”里出现百科、旅游攻略、培训课程；多个岗位被拼成一条；菜单里的城市、合作伙伴或客户名称被当成企业／城市证据；只写“AI／大模型”的岗位被匹配成 Agent 岗。</div></div>
+      <div class="row"><div class="k">根因</div><div class="v">早期把任意搜索结果直接包装成职位，没有要求企业、城市、岗位在正文中有连续、可引用的证据；模型提取也缺少逐字引用约束。</div></div>
+      <div class="row"><div class="k">处理</div><div class="v">0.1.7 重建检索：最多 6 组查询、24 个候选、12 篇正文、并发 3、90 秒；优先官方入口与独立职位页；JSON-LD 每个 JobPosting 独立成块；字段必须逐字对应引用且属于同一连续区块；百科／旅游／培训等来源排除；严格匹配要求全部条件有证据，摘要只能进相关备选。</div></div>
+      <div class="row"><div class="k">验证</div><div class="v">真实联网“长沙＋华为＋Agent”严格 0、相关 2；“长沙＋拓维信息＋Agent”严格 1、相关 1；另用百科、旅游、合作伙伴、多岗位串字段等反例回归。</div></div>
+      <div class="verdict"><b>证据等级 B</b> · 来源 <code>docs/JOBS-0.1.7.md</code>。支持建议：严格 0 条不等于企业没有招聘；先看「相关备选」与差异，再看诊断中的验证／限流／超时。</div>
+    </div>
+  </div>
+
+  <div class="case">
+    <div class="case-head"><span class="id">C06</span><span class="title">官网入口 302 到验证页／内网，动态职位列表读不到</span><span class="ver">0.1.14</span></div>
+    <div class="case-body">
+      <div class="row"><div class="k">现象</div><div class="v">打开官网入口后跳转到登录／验证页；企业职位页是 JavaScript 动态渲染，后台读到空列表；北森链接使用内部数字 ID 导致原文打不开。</div></div>
+      <div class="row"><div class="k">根因</div><div class="v">重定向未逐跳校验；动态页面不执行脚本；平台职位数据需要已核验租户的公开接口；官网原文使用 GUID 而非内部 JobAdId。</div></div>
+      <div class="row"><div class="k">处理</div><div class="v">0.1.14 使用 Electron ClientRequest 单次捕获重定向，每一跳重新校验公开网址、DNS 与代理，禁止跳转本机／内网；只对已核验的北森／Zhiye 租户调用固定公开查询接口；官网原文使用实际 GUID；动态页面保留官网入口，不把“读不到”判成“没有岗位”。</div></div>
+      <div class="row"><div class="k">验证</div><div class="v">代理夹具验证 302、内网跳转阻止、验证码跳转阻止、HTTP 403／429、连接断开与代理故障不绕过；真实联网万兴科技单条件 10 条、长沙＋万兴＋Agent 3 条。</div></div>
+      <div class="verdict"><b>证据等级 B</b> · 来源 <code>docs/JOBS-0.1.14.md</code>。支持建议：让用户在系统浏览器打开官网核对；受限站点单独说明，不承诺所有平台可读取。</div>
+    </div>
+  </div>
+
+  <div class="case">
+    <div class="case-head"><span class="id">C09</span><span class="title">资讯同一天重复更新，或跨日一直不更新</span><span class="ver">0.1.10 → 0.1.12</span></div>
+    <div class="case-body">
+      <div class="row"><div class="k">现象</div><div class="v">同一天多次重启，每次都联网检索；应用跨日持续打开，工作台仍显示昨天的资讯；更新失败后没有清楚的“今天已尝试”状态。</div></div>
+      <div class="row"><div class="k">根因</div><div class="v">早期只在启动时触发，没有本地日期标记；跨日没有激活检查；并发检查与手动刷新可能重复发起。</div></div>
+      <div class="row"><div class="k">处理</div><div class="v">0.1.12 按本地日期在请求前写入 SQLite；同日重启、切页、唤醒不重复；跨日返回或激活工作台时检查；手动刷新满足当日条件；运行中的检查与刷新合并为同一请求；失败也计入当天尝试，保留缓存与真实提示。</div></div>
+      <div class="row"><div class="k">验证</div><div class="v">15 项资讯测试覆盖本地日期、同日重启、跨日、并发、手动重试、失败、旧缓存与中断恢复；125%／150% 实际界面验证。</div></div>
+      <div class="verdict"><b>证据等级 B</b> · 来源 <code>docs/DASHBOARD-0.1.12.md</code>。支持建议：失败后可以手动「刷新」；不要把“今天已尝试”理解为“永远不会再试”。</div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 25 简历与学习案例 ================= -->
+<section class="chapter" id="p3c5" data-num="25" data-title="简历与学习案例" data-part="第三部分 · 故障案例与支持手册" data-pm="[[P3C5]]">
+  <div class="chapter-head">
+    <div class="kicker">RESUME · CODING · MODEL</div>
+    <h1>简历与学习案例<span class="pm">[[P3C5]]</span></h1>
+    <div class="no">25</div>
+  </div>
+
+  <div class="case">
+    <div class="case-head"><span class="id">C07</span><span class="title">源码目录导入误计数：1500 个条目上限把无关文件也算进去</span><span class="ver">0.1.15</span></div>
+    <div class="case-body">
+      <div class="row"><div class="k">现象</div><div class="v">项目只有少量源码，却提示超过 1500 个条目；或者导入后只读到很少文件，依赖、构建产物、缓存占满了配额。</div></div>
+      <div class="row"><div class="k">根因</div><div class="v">旧实现先按物理文件计数，再筛选源码；<code>node_modules</code>、<code>dist</code>、<code>.git</code>、缓存与发布归档都被算进上限，真正源码反而被截断。</div></div>
+      <div class="row"><div class="k">处理</div><div class="v">0.1.15 先排除依赖、构建、版本控制、缓存、发布归档、链接与凭据文件，再按可读源码计数；源码最多 10,000 份，目录扫描另有 100,000 个物理条目防护；超出配额的文件在读取清单中逐项说明。</div></div>
+      <div class="row"><div class="k">验证</div><div class="v">用含 1600 个无关文件的大型源码目录复测，不要求成员分工，正确读取目标源码；ZIP 保留 100 MB 声明容量、100,000 条目、路径逃逸、加密与符号链接检查。</div></div>
+      <div class="verdict"><b>证据等级 B</b> · 来源 <code>docs/RESUME-0.1.15.md</code>。支持建议：先看导入清单里的“已排除／超限”说明；不要把整个含依赖的目录直接导入。</div>
+    </div>
+  </div>
+
+  <div class="case">
+    <div class="case-head"><span class="id">C08</span><span class="title">材料数字摘要失败、批量分析中断或迟到结果覆盖</span><span class="ver">0.1.15</span></div>
+    <div class="case-body">
+      <div class="row"><div class="k">现象</div><div class="v">材料摘要里的数字与原文不一致，生成被阻止；一次勾选太多材料触发 9 万字符上限；取消后旧批次结果又写入，覆盖手动编辑。</div></div>
+      <div class="row"><div class="k">根因</div><div class="v">单批请求、缺少逐条摘要核对；批次与草稿版本没有绑定；迟到结果没有版本检查。</div></div>
+      <div class="row"><div class="k">处理</div><div class="v">每条材料摘要分别核对原文位置和数字；错误摘要允许一次本批修复，仍未通过则排除该细节并显示原摘要、位置与数字问题；超过单批范围自动分批（9 万字符／6 图）；每批模型调用最多 3 分钟；请求 ID 与版本检查阻止迟到结果覆盖。</div></div>
+      <div class="row"><div class="k">验证</div><div class="v">4 份材料、25 个勾选片段自动分 2 批；后续批次取消与迟到结果保护纳入 31 项简历回归；失败保留旧稿与材料。</div></div>
+      <div class="verdict"><b>证据等级 B</b> · 来源 <code>docs/RESUME-0.1.15.md</code>。支持建议：先减少勾选、检查原文数字；失败后不要反复重建草稿，旧稿与输入会保留。</div>
+    </div>
+  </div>
+
+  <div class="case">
+    <div class="case-head"><span class="id">C10</span><span class="title">旧版本地判题结果被误当成“官网通过”</span><span class="ver">0.1.9</span></div>
+    <div class="case-body">
+      <div class="row"><div class="k">现象</div><div class="v">升级后 Hot100 显示某题已通过，但用户从未在力扣官网提交；或新的手动记录与旧本地判题结果混在一起，正确题数不一致。</div></div>
+      <div class="row"><div class="k">根因</div><div class="v">0.1.9 之前存在本地 Python 判题，结果写入 <code>result</code>；新版本改为官网提交后手动确认，旧结果没有与“官网通过”区分。</div></div>
+      <div class="row"><div class="k">处理</div><div class="v">0.1.9 移除新界面的本地运行入口；旧 <code>result</code> 作为 <code>legacyResults</code> 单独保留，不计次数、不代表官网通过；每题独立记录第几次刷题，最新手动记录决定正确题数与错题筛选。</div></div>
+      <div class="row"><div class="k">验证</div><div class="v">100 题官方题意与模板逐题核对；88 项自动化覆盖旧进度、独立计数、幂等、编辑与重启；发行包确认不含旧 runner。</div></div>
+      <div class="verdict"><b>证据等级 B</b> · 来源 <code>docs/CODING-0.1.9.md</code>。支持建议：以力扣官网提交结果为准；旧本地结果只用于历史说明，不要据此判断“已通过”。</div>
+    </div>
+  </div>
+
+  <div class="case">
+    <div class="case-head"><span class="id">C11</span><span class="title">点击生成只提示“请先在设置中配置并选择模型”</span><span class="ver">0.1.15 · 本次复现</span></div>
+    <div class="case-body">
+      <div class="row"><div class="k">现象</div><div class="v">在「项目经历优化」填写概述后点击生成，页面底部出现红色提示“请先在设置中配置并选择模型。”；没有模型请求发出。</div></div>
+      <div class="row"><div class="k">环境</div><div class="v">Windows 10/11；0.1.15；隔离数据目录；未配置供应商与模型。</div></div>
+      <div class="row"><div class="k">根因</div><div class="v">生成任务需要模型会话；<code>Pi.session()</code> 找不到当前 provider/model 时抛出该错误。另一种变体是模型已配置但不支持图片输入，扫描页会明确失败。</div></div>
+      <div class="row"><div class="k">处理</div><div class="v">进入「模型与设置」，选择供应商、填写模型 ID 与 Key，保存并「测试连接」；扫描 PDF／图片需切换支持图片输入的模型，或补充文本。</div></div>
+      <div class="row"><div class="k">验证</div><div class="v">本次实际复现：未配置模型时生成被阻止，提示准确；界面同时显示“将发送至 custom / 尚未配置模型”。<b>A 级</b></div></div>
+      <div class="verdict"><b>证据等级 A</b> · 本次隔离复现（截图见第 6 章与附录 D）。支持建议：不要反复点击生成；先确认顶部模型芯片与「测试连接」结果。</div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 26 支持 playbook ================= -->
+<section class="chapter" id="p3c6" data-num="26" data-title="支持 playbook 与案例索引" data-part="第三部分 · 故障案例与支持手册" data-pm="[[P3C6]]">
+  <div class="chapter-head">
+    <div class="kicker">TRIAGE · PLAYBOOK · INDEX</div>
+    <h1>支持 playbook 与案例索引<span class="pm">[[P3C6]]</span></h1>
+    <div class="no">26</div>
+  </div>
+
+  <p class="lead">支持人员的第一目标不是“马上给方案”，而是把问题放到正确的层。多数误判来自跳过版本、启动方式和错误分类，直接建议重装或删除数据。下面的流程按“最小破坏”排序。</p>
+
+  <h2>26.1 十分钟分诊</h2>
+  <div class="steps">
+    <div><b>确认版本与启动方式。</b>应用版本、安装版／便携版／源码、Windows 版本、显示缩放、是否从 IDE／终端启动、是否设置了 <code>ELECTRON_RUN_AS_NODE</code>。</div>
+    <div><b>让用户复述“期望—实际—原话”。</b>不要只收集“用不了”；要具体到按钮、页面、提示原文与出现时间。</div>
+    <div><b>判断层。</b>启动／进程、界面／状态、数据、模型／授权、网络／外部站点、内容核验（见 21.2）。</div>
+    <div><b>做只读检查。</b>模型是否配置、凭据是否存在、数据目录是否存在、<code>.backup</code> 时间、错误分类与 HTTP 状态、是否可复现。</div>
+    <div><b>给最小破坏的方案。</b>先重试／换模型／换关键词／打开官网核对；再恢复备份或换匹配版本；最后才考虑重装。重装前必须备份数据。</div>
+    <div><b>未解决就形成工单草稿。</b>记录版本、环境、复现步骤、已尝试方案、证据与影响范围；经用户确认后再创建。</div>
+  </div>
+
+  <h2>26.2 应该收集与不应收集</h2>
+  <p>应收集：版本号、启动方式、系统与缩放、错误原文、错误分类／HTTP 状态、发生前操作、是否可复现、是否使用代理、数据目录是否完整备份。不应收集：API Key、OAuth 令牌、授权码、完整回调地址、代理地址中的凭据、真实简历或聊天原文、数据库文件本身（除非用户明确同意且已脱敏）。</p>
+
+  <h2>26.3 案例索引</h2>
+  <p>案例编号按出现顺序保留：C01～C02 授权与启动，C03～C04 聊天与删除，C05～C06、C09 岗位与资讯，C07～C08、C10～C13 简历、学习与模型／数据。每个案例的版本、根因与证据等级见对应卡片；需要按症状检索时，优先使用“现象”与“根因”两行的关键词。</p>
+</section>
